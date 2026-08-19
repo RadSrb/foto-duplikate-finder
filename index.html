@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Foto-Duplikate finden</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#1a1d24; --card2:#20242e; --text:#eef0f4; --muted:#9aa3b2;
+    --accent:#4f8cff; --danger:#ff5c5c; --keep:#3ecf8e; --border:#2a2f3a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  body{padding-bottom:env(safe-area-inset-bottom);}
+  header{position:sticky;top:0;z-index:10;background:var(--bg);
+    padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;border-bottom:1px solid var(--border);}
+  h1{font-size:1.15rem;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:0.85rem;margin:0;}
+  main{padding:16px;max-width:640px;margin:0 auto;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:16px;margin-bottom:16px;}
+  button{font-size:1rem;border:none;border-radius:12px;padding:14px 18px;
+    font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .btn-primary{background:var(--accent);color:#fff;width:100%;}
+  .btn-primary:disabled{opacity:.4;}
+  .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);width:100%;}
+  .btn-danger{background:var(--danger);color:#fff;width:100%;}
+  input[type=file]{display:none;}
+  .picker-label{display:block;text-align:center;}
+  .hint{font-size:0.8rem;color:var(--muted);line-height:1.4;margin-top:10px;}
+  .progress-wrap{background:var(--card2);border-radius:8px;height:10px;overflow:hidden;margin:12px 0;}
+  .progress-bar{height:100%;background:var(--accent);width:0%;transition:width .15s;}
+  .stats{display:flex;gap:10px;margin:14px 0;}
+  .stat{flex:1;background:var(--card2);border-radius:12px;padding:12px;text-align:center;}
+  .stat .num{font-size:1.4rem;font-weight:700;}
+  .stat .label{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+  .group{background:var(--card2);border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid var(--border);}
+  .group h3{font-size:0.85rem;margin:0 0 10px;color:var(--muted);font-weight:600;}
+  .thumbs{display:flex;flex-wrap:wrap;gap:10px;}
+  .thumb{width:104px;}
+  .thumb img{width:104px;height:104px;object-fit:cover;border-radius:10px;display:block;
+    border:2px solid transparent;}
+  .thumb.keep img{border-color:var(--keep);}
+  .thumb.del img{border-color:var(--danger);opacity:.55;}
+  .thumb .meta{font-size:0.68rem;color:var(--muted);margin-top:4px;line-height:1.3;word-break:break-word;}
+  .thumb .tag{font-size:0.68rem;font-weight:700;margin-top:4px;padding:2px 6px;border-radius:6px;display:inline-block;}
+  .tag.keep{background:rgba(62,207,142,.15);color:var(--keep);}
+  .tag.del{background:rgba(255,92,92,.15);color:var(--danger);}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+  .toggle-row span{font-size:0.68rem;color:var(--muted);}
+  .switch{width:38px;height:22px;border-radius:11px;background:var(--border);position:relative;flex-shrink:0;}
+  .switch.on{background:var(--danger);}
+  .switch::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;
+    background:#fff;top:2px;left:2px;transition:left .15s;}
+  .switch.on::after{left:18px;}
+  .checklist-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);}
+  .checklist-item.done{opacity:.4;}
+  .checklist-item img{width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;}
+  .checklist-item .info{flex:1;font-size:0.85rem;}
+  .checklist-item .info .date{color:var(--muted);font-size:0.75rem;}
+  .checkbox{width:26px;height:26px;border-radius:8px;border:2px solid var(--border);
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.9rem;}
+  .checkbox.done{background:var(--keep);border-color:var(--keep);}
+  .hidden{display:none !important;}
+  .center{text-align:center;}
+  .top-actions{display:flex;gap:10px;margin-top:14px;}
+  .top-actions button{flex:1;}
+  #dropHint{border:2px dashed var(--border);border-radius:14px;padding:30px 16px;text-align:center;color:var(--muted);}
+  a.link-btn{color:var(--accent);text-decoration:none;font-size:0.85rem;display:block;text-align:center;margin-top:10px;}
+  .badge-privacy{display:flex;gap:8px;align-items:center;background:rgba(79,140,255,.1);
+    border:1px solid rgba(79,140,255,.25);border-radius:10px;padding:10px 12px;font-size:0.78rem;color:var(--muted);margin-top:14px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📷 Foto-Duplikate finden</h1>
+  <p class="sub" id="headerSub">Alles läuft nur auf deinem Handy – keine Fotos werden hochgeladen.</p>
+</header>
+
+<main>
+
+  <!-- STEP 1: Auswahl -->
+  <section id="step1" class="card center">
+    <div id="dropHint">
+      <p style="margin:0 0 6px;font-size:1rem;">Wähle die Fotos aus, die geprüft werden sollen</p>
+      <p class="hint" style="margin:0;">Tipp: In der Fotos-App ein Album oder mehrere Fotos auswählen, dann hier auswählen. Bei sehr großer Mediathek lieber in Etappen (z.B. je 200–500 Fotos) prüfen.</p>
+    </div>
+    <label class="picker-label" style="margin-top:16px;">
+      <input type="file" id="fileInput" multiple accept="image/*">
+      <span class="btn-primary" style="display:block;">Fotos auswählen</span>
+    </label>
+    <div class="badge-privacy">🔒 Analyse erfolgt lokal im Browser. Es werden keine Daten irgendwohin gesendet.</div>
+  </section>
+
+  <!-- STEP 2: Fortschritt -->
+  <section id="step2" class="card hidden">
+    <p id="progressLabel">Analysiere Fotos…</p>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <p class="hint" id="progressDetail"></p>
+  </section>
+
+  <!-- STEP 3: Ergebnisse -->
+  <section id="step3" class="hidden">
+    <div class="card">
+      <div class="stats">
+        <div class="stat"><div class="num" id="statAnalyzed">0</div><div class="label">geprüft</div></div>
+        <div class="stat"><div class="num" id="statGroups">0</div><div class="label">Duplikat-Gruppen</div></div>
+        <div class="stat"><div class="num" id="statExtra">0</div><div class="label">überflüssige Kopien</div></div>
+        <div class="stat"><div class="num" id="statSize">0</div><div class="label">sparbar</div></div>
+      </div>
+      <p class="hint hidden" id="noDupHint">Keine exakten Duplikate gefunden. 🔍 Es werden nur bit-identische Dateien erkannt – leicht veränderte Kopien (z.B. neu exportiert, verkleinert) werden bewusst nicht angerührt, um nichts Falsches zu löschen.</p>
+    </div>
+
+    <div id="groupsContainer"></div>
+
+    <div class="card" id="proceedCard">
+      <button class="btn-danger" id="btnProceed">Löschliste erstellen (<span id="proceedCount">0</span> Fotos)</button>
+      <p class="hint">Safari erlaubt Web-Apps keinen direkten Zugriff auf deine Foto-Bibliothek. Im nächsten Schritt bekommst du eine geführte Checkliste, mit der du die markierten Duplikate schnell selbst in der Fotos-App löschst.</p>
+    </div>
+    <button class="btn-ghost" id="btnRestart">Neue Fotos auswählen</button>
+  </section>
+
+  <!-- STEP 4: Checkliste -->
+  <section id="step4" class="hidden">
+    <div class="card">
+      <h2 style="margin:0 0 4px;font-size:1rem;">So löschst du die Duplikate</h2>
+      <p class="hint" style="margin:0 0 10px;">Öffne parallel die <b>Fotos-App</b>. Suche jedes Foto unten anhand von Vorschau, Aufnahmedatum und Dateigröße, lösche es dort per Wisch- oder Auswahl-Geste, und hake es hier zur eigenen Übersicht ab.</p>
+      <div class="progress-wrap"><div class="progress-bar" id="checkProgressBar" style="background:var(--keep);"></div></div>
+      <p class="hint" id="checkProgressLabel" style="margin-top:6px;"></p>
+      <div class="top-actions">
+        <button class="btn-ghost" id="btnExport">Als Text exportieren</button>
+        <button class="btn-ghost" id="btnBack">Zurück zur Übersicht</button>
+      </div>
+    </div>
+    <div class="card" id="checklistContainer"></div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const fileInput = $('fileInput');
+  const step1 = $('step1'), step2 = $('step2'), step3 = $('step3'), step4 = $('step4');
+
+  let duplicateGroups = []; // [{files:[{file,url,hash,captureDate}], keepIndex}]
+  let allObjectUrls = [];
+
+  function showStep(n){
+    [step1,step2,step3,step4].forEach((s,i)=> s.classList.toggle('hidden', i !== n-1));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function fmtBytes(bytes){
+    if (bytes < 1024) return bytes + ' B';
+    const units = ['KB','MB','GB'];
+    let u = -1;
+    do { bytes /= 1024; u++; } while (bytes >= 1024 && u < units.length - 1);
+    return bytes.toFixed(1) + ' ' + units[u];
+  }
+
+  function fmtDate(d){
+    if (!d) return 'unbekanntes Datum';
+    return d.toLocaleString('de-DE', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+
+  async function hashFile(file){
+    const buf = await file.arrayBuffer();
+    const digest = await crypto.subtle.digest('SHA-256', buf);
+    const hex = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2,'0')).join('');
+    return { hex, buf };
+  }
+
+  // Minimal EXIF DateTimeOriginal reader (JPEG only). Falls back to file.lastModified.
+  function readExifDate(buf){
+    try{
+      const view = new DataView(buf);
+      if (view.getUint16(0) !== 0xFFD8) return null; // not JPEG
+      let offset = 2;
+      const len = view.byteLength;
+      while (offset < len) {
+        if (view.getUint16(offset) === 0xFFE1) { // APP1
+          const segStart = offset + 4;
+          if (view.getUint32(segStart) === 0x45786966) { // "Exif"
+            return parseExifDate(view, segStart + 6);
+          }
+        }
+        const marker = view.getUint16(offset);
+        if (marker === 0xFFDA) break; // start of scan, no more metadata
+        offset += 2 + view.getUint16(offset + 2);
+      }
+    } catch(e){ /* ignore, fallback below */ }
+    return null;
+  }
+
+  function parseExifDate(view, tiffStart){
+    const little = view.getUint16(tiffStart) === 0x4949;
+    const g16 = (o) => view.getUint16(o, little);
+    const g32 = (o) => view.getUint32(o, little);
+    const ifd0Offset = tiffStart + g32(tiffStart + 4);
+    let exifIfdOffset = null;
+    const entries0 = g16(ifd0Offset);
+    for (let i = 0; i < entries0; i++){
+      const entryOffset = ifd0Offset + 2 + i * 12;
+      if (g16(entryOffset) === 0x8769){ exifIfdOffset = tiffStart + g32(entryOffset + 8); break; }
+    }
+    if (!exifIfdOffset) return null;
+    const entriesE = g16(exifIfdOffset);
+    for (let i = 0; i < entriesE; i++){
+      const entryOffset = exifIfdOffset + 2 + i * 12;
+      const tag = g16(entryOffset);
+      if (tag === 0x9003 || tag === 0x0132){ // DateTimeOriginal or DateTime
+        const valueOffset = entryOffset + 8;
+        let str = '';
+        for (let c = 0; c < 19; c++){
+          const code = view.getUint8(valueOffset + c);
+          if (code === 0) break;
+          str += String.fromCharCode(code);
+        }
+        const m = str.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+        if (m) return new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
+      }
+    }
+    return null;
+  }
+
+  async function analyze(files){
+    showStep(2);
+    const progressBar = $('progressBar'), progressDetail = $('progressDetail'), progressLabel = $('progressLabel');
+    progressLabel.textContent = 'Gruppiere nach Dateigröße…';
+    await tick();
+
+    const bySize = new Map();
+    for (const f of files){
+      if (!bySize.has(f.size)) bySize.set(f.size, []);
+      bySize.get(f.size).push(f);
+    }
+    const candidates = [...bySize.values()].filter(g => g.length > 1);
+    const totalToHash = candidates.reduce((s,g)=>s+g.length,0);
+
+    if (totalToHash === 0){
+      finishAnalysis(files.length, []);
+      return;
+    }
+
+    progressLabel.textContent = 'Vergleiche mögliche Duplikate…';
+    const byHash = new Map();
+    let done = 0;
+    for (const group of candidates){
+      for (const f of group){
+        const { hex, buf } = await hashFile(f);
+        const captureDate = readExifDate(buf);
+        const date = captureDate || (f.lastModified ? new Date(f.lastModified) : null);
+        if (!byHash.has(hex)) byHash.set(hex, []);
+        byHash.get(hex).push({ file: f, date });
+        done++;
+        const pct = Math.round(done / totalToHash * 100);
+        progressBar.style.width = pct + '%';
+        progressDetail.textContent = done + ' von ' + totalToHash + ' möglichen Duplikaten geprüft (' + pct + '%)';
+        if (done % 5 === 0) await tick();
+      }
+    }
+
+    const dupGroups = [...byHash.values()].filter(g => g.length > 1);
+    finishAnalysis(files.length, dupGroups);
+  }
+
+  function tick(){ return new Promise(r => setTimeout(r, 0)); }
+
+  function finishAnalysis(totalAnalyzed, rawGroups){
+    // build display groups, sorted by date ascending (oldest = default keep)
+    duplicateGroups = rawGroups.map(items => {
+      const sorted = items.slice().sort((a,b) => (a.date?.getTime()||0) - (b.date?.getTime()||0));
+      const withMeta = sorted.map(it => ({
+        file: it.file,
+        date: it.date,
+        url: URL.createObjectURL(it.file)
+      }));
+      withMeta.forEach(m => allObjectUrls.push(m.url));
+      return { files: withMeta, keepIndex: 0 }; // default: keep oldest, mark rest for deletion
+    });
+
+    renderResults(totalAnalyzed);
+    showStep(3);
+  }
+
+  function renderResults(totalAnalyzed){
+    const totalExtra = duplicateGroups.reduce((s,g)=>s+g.files.length-1,0);
+    const totalBytes = duplicateGroups.reduce((s,g)=>{
+      return s + g.files.reduce((s2,f,i)=> i===g.keepIndex ? s2 : s2 + f.file.size, 0);
+    },0);
+
+    $('statAnalyzed').textContent = totalAnalyzed;
+    $('statGroups').textContent = duplicateGroups.length;
+    $('statExtra').textContent = totalExtra;
+    $('statSize').textContent = fmtBytes(totalBytes);
+    $('proceedCount').textContent = totalExtra;
+    $('proceedCard').classList.toggle('hidden', totalExtra === 0);
+    $('noDupHint').classList.toggle('hidden', duplicateGroups.length !== 0);
+
+    const container = $('groupsContainer');
+    container.innerHTML = '';
+    duplicateGroups.forEach((group, gi) => {
+      const div = document.createElement('div');
+      div.className = 'group';
+      const perFileSize = fmtBytes(group.files[0].file.size);
+      div.innerHTML = '<h3>Gruppe ' + (gi+1) + ' · ' + group.files.length + ' identische Fotos · je ' + perFileSize + '</h3>';
+      const thumbs = document.createElement('div');
+      thumbs.className = 'thumbs';
+      group.files.forEach((f, fi) => {
+        const isKeep = fi === group.keepIndex;
+        const t = document.createElement('div');
+        t.className = 'thumb ' + (isKeep ? 'keep' : 'del');
+        t.innerHTML =
+          '<img src="' + f.url + '" loading="lazy">' +
+          '<div class="meta">' + fmtDate(f.date) + '</div>' +
+          '<span class="tag ' + (isKeep?'keep':'del') + '">' + (isKeep ? 'BEHALTEN' : 'LÖSCHEN') + '</span>' +
+          '<div class="toggle-row"><span>als behalten markieren</span>' +
+            '<div class="switch ' + (isKeep?'':'on') + '" data-g="' + gi + '" data-f="' + fi + '"></div></div>';
+        thumbs.appendChild(t);
+      });
+      div.appendChild(thumbs);
+      container.appendChild(div);
+    });
+
+    container.querySelectorAll('.switch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        const gi = +sw.dataset.g, fi = +sw.dataset.f;
+        duplicateGroups[gi].keepIndex = fi; // clicking "als behalten markieren" makes this one the keeper
+        renderResults(totalAnalyzed);
+      });
+    });
+  }
+
+  // ---- Step 4: Checkliste ----
+  let checklistItems = []; // {file,date,url,done}
+
+  function buildChecklist(){
+    checklistItems = [];
+    duplicateGroups.forEach(g => {
+      g.files.forEach((f, fi) => {
+        if (fi !== g.keepIndex) checklistItems.push({ ...f, done:false });
+      });
+    });
+    checklistItems.sort((a,b)=> (a.date?.getTime()||0) - (b.date?.getTime()||0));
+    renderChecklist();
+    showStep(4);
+  }
+
+  function renderChecklist(){
+    const container = $('checklistContainer');
+    container.innerHTML = '';
+    checklistItems.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'checklist-item' + (item.done ? ' done' : '');
+      row.innerHTML =
+        '<img src="' + item.url + '">' +
+        '<div class="info">Foto ' + (idx+1) + ' von ' + checklistItems.length +
+          '<div class="date">' + fmtDate(item.date) + ' · ' + fmtBytes(item.file.size) + '</div></div>' +
+        '<div class="checkbox' + (item.done ? ' done' : '') + '" data-idx="' + idx + '">' + (item.done ? '✓' : '') + '</div>';
+      container.appendChild(row);
+    });
+    container.querySelectorAll('.checkbox').forEach(cb => {
+      cb.addEventListener('click', () => {
+        const idx = +cb.dataset.idx;
+        checklistItems[idx].done = !checklistItems[idx].done;
+        renderChecklist();
+        updateChecklistProgress();
+      });
+    });
+    updateChecklistProgress();
+  }
+
+  function updateChecklistProgress(){
+    const doneCount = checklistItems.filter(i=>i.done).length;
+    const pct = checklistItems.length ? Math.round(doneCount/checklistItems.length*100) : 0;
+    $('checkProgressBar').style.width = pct + '%';
+    $('checkProgressLabel').textContent = doneCount + ' von ' + checklistItems.length + ' in der Fotos-App gelöscht';
+  }
+
+  async function exportList(){
+    const lines = checklistItems.map((it,i) =>
+      (i+1) + '. ' + fmtDate(it.date) + ' – ' + fmtBytes(it.file.size) + (it.file.name ? ' – ' + it.file.name : '')
+    );
+    const text = 'Zu löschende Duplikate (' + checklistItems.length + '):\n\n' + lines.join('\n');
+    if (navigator.share){
+      try { await navigator.share({ text }); return; } catch(e){ /* fall through */ }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Liste wurde in die Zwischenablage kopiert.');
+    } catch(e){
+      const blob = new Blob([text], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'duplikate.txt'; a.click();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function resetAll(){
+    allObjectUrls.forEach(u => URL.revokeObjectURL(u));
+    allObjectUrls = [];
+    duplicateGroups = [];
+    checklistItems = [];
+    fileInput.value = '';
+    showStep(1);
+  }
+
+  fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
+    if (files.length === 0) return;
+    analyze(files);
+  });
+
+  $('btnProceed').addEventListener('click', buildChecklist);
+  $('btnBack').addEventListener('click', () => showStep(3));
+  $('btnRestart').addEventListener('click', resetAll);
+  $('btnExport').addEventListener('click', exportList);
+
+})();
+</script>
+</body>
+</html>
