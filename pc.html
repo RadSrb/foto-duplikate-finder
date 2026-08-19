@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Foto-Duplikate am PC – wirklich löschen</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#1a1d24; --card2:#20242e; --text:#eef0f4; --muted:#9aa3b2;
+    --accent:#4f8cff; --danger:#ff5c5c; --keep:#3ecf8e; --warn:#ffb454; --border:#2a2f3a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  header{position:sticky;top:0;z-index:10;background:var(--bg);
+    padding:14px 20px;border-bottom:1px solid var(--border);}
+  h1{font-size:1.15rem;margin:0 0 4px;}
+  .sub{color:var(--muted);font-size:0.85rem;margin:0;}
+  main{padding:20px;max-width:920px;margin:0 auto;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px;margin-bottom:16px;}
+  h2{font-size:1rem;margin:0 0 10px;}
+  button{font-size:0.95rem;border:none;border-radius:10px;padding:12px 18px;
+    font-weight:600;cursor:pointer;font-family:inherit;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .btn-warn{background:var(--warn);color:#191b20;}
+  .btn-wide{width:100%;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .row > button{flex:1;min-width:180px;}
+  .hint{font-size:0.82rem;color:var(--muted);line-height:1.5;margin-top:10px;}
+  .progress-wrap{background:var(--card2);border-radius:8px;height:10px;overflow:hidden;margin:12px 0;}
+  .progress-bar{height:100%;background:var(--accent);width:0%;transition:width .1s;}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .stat{flex:1;min-width:110px;background:var(--card2);border-radius:12px;padding:12px;text-align:center;}
+  .stat .num{font-size:1.35rem;font-weight:700;}
+  .stat .label{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+  .group{background:var(--card2);border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid var(--border);}
+  .group.exact{border-color:rgba(62,207,142,.35);}
+  .group h3{font-size:0.82rem;margin:0 0 10px;color:var(--muted);font-weight:600;}
+  .thumbs{display:flex;flex-wrap:wrap;gap:10px;}
+  .thumb{width:118px;}
+  .thumb img{width:118px;height:118px;object-fit:cover;border-radius:10px;display:block;
+    border:2px solid transparent;background:var(--card);}
+  .thumb.keep img{border-color:var(--keep);}
+  .thumb.del img{border-color:var(--danger);opacity:.55;}
+  .thumb .meta{font-size:0.66rem;color:var(--muted);margin-top:4px;line-height:1.35;word-break:break-all;}
+  .thumb .tag{font-size:0.65rem;font-weight:700;margin-top:4px;padding:2px 6px;border-radius:6px;display:inline-block;}
+  .tag.keep{background:rgba(62,207,142,.15);color:var(--keep);}
+  .tag.del{background:rgba(255,92,92,.15);color:var(--danger);}
+  .thumb .pick{font-size:0.66rem;color:var(--accent);margin-top:5px;cursor:pointer;
+    background:none;border:none;padding:0;font-weight:600;font-family:inherit;}
+  .slider-row{display:flex;align-items:center;gap:14px;margin:6px 0 2px;}
+  input[type=range]{flex:1;accent-color:var(--accent);}
+  .slider-val{font-weight:700;font-size:1.1rem;min-width:56px;text-align:right;}
+  .tier{font-size:0.8rem;color:var(--muted);}
+  .folders{max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px;}
+  .folder{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;font-size:0.88rem;}
+  .folder:hover{background:var(--card2);}
+  .folder .cnt{margin-left:auto;color:var(--muted);font-size:0.78rem;}
+  .banner{border-radius:10px;padding:12px 14px;font-size:0.84rem;line-height:1.5;margin-bottom:14px;}
+  .banner.warn{background:rgba(255,180,84,.1);border:1px solid rgba(255,180,84,.3);}
+  .banner.err{background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3);}
+  .banner.info{background:rgba(79,140,255,.1);border:1px solid rgba(79,140,255,.25);color:var(--muted);}
+  pre.list{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;
+    max-height:340px;overflow:auto;font-size:0.75rem;line-height:1.6;white-space:pre-wrap;word-break:break-all;margin:0;}
+  .hidden{display:none !important;}
+  a{color:var(--accent);}
+  .foot{text-align:center;font-size:0.8rem;color:var(--muted);padding:10px 0 30px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🖥️ Foto-Duplikate am PC – wirklich löschen</h1>
+  <p class="sub">Findet exakte <b>und</b> ähnliche Bilder im iCloud-Ordner und löscht sie echt. Die Löschung synchronisiert aufs iPhone.</p>
+</header>
+
+<main>
+
+  <!-- Browser nicht geeignet -->
+  <section id="unsupported" class="card hidden">
+    <div class="banner err">
+      <b>Dieser Browser kann das nicht.</b><br>
+      Diese Seite braucht Schreibzugriff auf einen Ordner. Das können nur <b>Chrome</b> und <b>Edge</b> am Computer –
+      Safari, Firefox und alle Browser am iPhone nicht.
+    </div>
+    <p class="hint">Für das iPhone gibt es die <a href="./index.html">Checklisten-Version</a>.</p>
+  </section>
+
+  <!-- STEP 1: Ordner wählen -->
+  <section id="step1" class="card hidden">
+    <div class="banner warn">
+      <b>Bevor du loslegst – der Fünf-Minuten-Test.</b><br>
+      Lösche beim ersten Mal <b>ein einziges Foto</b> und schau am iPhone nach, ob es verschwunden ist.
+      Erst wenn das klappt, lösche größere Mengen. Dafür gibt es unten einen eigenen Knopf.
+    </div>
+    <h2>1. iCloud-Fotos-Ordner wählen</h2>
+    <p class="hint" style="margin-top:0;">
+      Typischerweise <code>C:\Users\&lt;Name&gt;\iCloudPhotos</code> oder <code>C:\Users\&lt;Name&gt;\Pictures\iCloud Photos</code>.
+      Chrome fragt dich nach Schreibrechten – die braucht die Seite, um löschen zu können.
+      Stelle in iCloud vorher <i>„Hocheffizientes Original beibehalten"</i> ab, damit JPEG statt HEIC ankommt.
+    </p>
+    <div class="row" style="margin-top:14px;">
+      <button class="btn-primary" id="btnPick">Ordner auswählen</button>
+      <button class="btn-ghost hidden" id="btnResume">Zuletzt genutzten Ordner öffnen</button>
+    </div>
+    <div class="banner info" style="margin-top:14px;">
+      🔒 Alles läuft lokal in deinem Browser. Es werden keine Bilder und keine Dateinamen irgendwohin gesendet.
+    </div>
+  </section>
+
+  <!-- STEP 2: Ordner-Auswahl -->
+  <section id="step2" class="card hidden">
+    <h2>2. Welche Ordner sollen geprüft werden?</h2>
+    <p class="hint" style="margin-top:0;" id="scanSummary"></p>
+    <div class="row" style="margin:10px 0;">
+      <button class="btn-ghost" id="btnSelAll" style="flex:0 0 auto;min-width:0;padding:8px 14px;">Alle</button>
+      <button class="btn-ghost" id="btnSelNone" style="flex:0 0 auto;min-width:0;padding:8px 14px;">Keinen</button>
+    </div>
+    <div class="folders" id="folderList"></div>
+    <button class="btn-primary btn-wide" id="btnAnalyze" style="margin-top:14px;">Auswahl analysieren</button>
+    <p class="hint">Fingerabdrücke werden lokal gespeichert. Ein zweiter Durchlauf über dieselben Ordner ist fast sofort fertig, und ein Abbruch kostet dich nichts.</p>
+  </section>
+
+  <!-- STEP 3: Fortschritt -->
+  <section id="step3" class="card hidden">
+    <h2 id="progressLabel">Analysiere…</h2>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <p class="hint" id="progressDetail" style="margin-top:6px;"></p>
+    <button class="btn-ghost" id="btnAbort" style="margin-top:10px;">Abbrechen</button>
+  </section>
+
+  <!-- STEP 4: Ergebnisse -->
+  <section id="step4" class="hidden">
+    <div class="card">
+      <div id="decodeWarn"></div>
+      <div class="stats">
+        <div class="stat"><div class="num" id="statAnalyzed">0</div><div class="label">geprüft</div></div>
+        <div class="stat"><div class="num" id="statGroups">0</div><div class="label">Gruppen</div></div>
+        <div class="stat"><div class="num" id="statExtra">0</div><div class="label">zum Löschen</div></div>
+        <div class="stat"><div class="num" id="statSize">0</div><div class="label">sparbar</div></div>
+        <div class="stat"><div class="num" id="statSkipped">0</div><div class="label">Screenshots übersprungen</div></div>
+      </div>
+
+      <h2 style="margin-top:18px;">Ähnlichkeits-Schwelle</h2>
+      <div class="slider-row">
+        <input type="range" id="threshold" min="70" max="100" step="1" value="90">
+        <span class="slider-val" id="thresholdVal">90 %</span>
+      </div>
+      <p class="tier" id="tierLabel"></p>
+      <p class="hint" style="margin-top:4px;">Gemessen an echten Fotos: neu komprimierte oder verkleinerte Kopien liegen bei <b>95–98 %</b>, Serienbilder vom selben Motiv bei rund <b>78 %</b>. Dazwischen ist eine Lücke – für Serienbilder musst du den Regler also deutlich nach links ziehen. Exakte Duplikate stehen davon unberührt darüber, die sind bit-identisch und immer sicher.</p>
+    </div>
+
+    <div id="groupsContainer"></div>
+
+    <div class="card" id="proceedCard">
+      <button class="btn-warn btn-wide" id="btnDryRun">Trockenlauf: Liste erstellen (<span id="proceedCount">0</span> Fotos) – löscht nichts</button>
+      <p class="hint">Der Trockenlauf zeigt dir jede einzelne Datei, die gelöscht würde, und legt sie als Textdatei ab. Gelöscht wird erst im Schritt danach, mit einem eigenen Knopf.</p>
+    </div>
+    <button class="btn-ghost btn-wide" id="btnRestart">Andere Ordner wählen</button>
+  </section>
+
+  <!-- STEP 5: Trockenlauf / Löschen -->
+  <section id="step5" class="hidden">
+    <div class="card">
+      <h2>Trockenlauf – das würde gelöscht</h2>
+      <p class="hint" style="margin-top:0;" id="dryRunSummary"></p>
+      <pre class="list" id="dryRunList"></pre>
+      <div class="row" style="margin-top:14px;">
+        <button class="btn-ghost" id="btnDownload">Liste als Textdatei sichern</button>
+        <button class="btn-ghost" id="btnBackToResults">Zurück zur Übersicht</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="banner warn">
+        <b>Ab hier wird wirklich gelöscht.</b><br>
+        Die Dateien gehen <b>nicht</b> in den Windows-Papierkorb – lokal sind sie sofort weg.
+        Dein Netz ist „Zuletzt gelöscht" in iCloud: 30 Tage, danach endgültig.
+      </div>
+      <div class="row">
+        <button class="btn-warn" id="btnDeleteOne">Nur das erste Foto löschen (Test)</button>
+        <button class="btn-danger" id="btnDeleteAll">Alle <span id="delCount">0</span> Fotos jetzt löschen</button>
+      </div>
+      <p class="hint">Nach dem Test: iPhone öffnen, Fotos-App, nachschauen ob es weg ist. Der Sync braucht je nach Verbindung ein paar Minuten.</p>
+      <div id="deleteResult"></div>
+    </div>
+  </section>
+
+  <p class="foot">Am iPhone? Dann nimm die <a href="./index.html">Checklisten-Version</a>.</p>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const SECTIONS = ['unsupported','step1','step2','step3','step4','step5'];
+  function show(id){
+    SECTIONS.forEach(s => $(s).classList.toggle('hidden', s !== id));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  // ---------- Grundvoraussetzung ----------
+  if (typeof window.showDirectoryPicker !== 'function'){
+    show('unsupported');
+    return;
+  }
+  show('step1');
+
+  const IMAGE_EXT = ['jpg','jpeg','png','heic','heif','webp','tif','tiff'];
+  const VIDEO_EXT = ['mov','mp4'];
+  // Gemessen an echten Bilddaten: neu komprimierte oder verkleinerte Kopien liegen bei
+  // 95–98 %, Serienbilder bei rund 78 %, verschiedene Bilder bei unter 55 %. Der Regler
+  // muss deshalb bis 70 % reichen, sonst sind Serienbilder gar nicht erreichbar.
+  const MAX_DIST = 19;              // entspricht 70 % – lockerste Stufe, die der Regler zulässt
+  const WORKERS = Math.max(2, Math.min(8, (navigator.hardwareConcurrency || 4) - 2));
+
+  // Bekannte iPhone-/iPad-Bildschirmauflösungen: erkennt Screenshots zuverlässiger als der Dateiname.
+  const SCREEN_RES = new Set([
+    '640x1136','750x1334','828x1792','1080x1920','1125x2436','1170x2532','1179x2556',
+    '1206x2622','1242x2688','1284x2778','1290x2796','1320x2868',
+    '1536x2048','1620x2160','1640x2360','1668x2224','1668x2388','2048x2732','1488x2266'
+  ]);
+
+  let rootHandle = null;
+  let allFiles = [];        // {handle,parent,name,relPath,dir,size,mtime}
+  let movPartners = new Map(); // "dir\0basename" -> {handle,parent,name,size}
+  let analyzed = [];        // {…file, lo,hi,date,w,h,sha,isShot,url}
+  let exactGroups = [], similarGroups = [], pairs = [];
+  let objectUrls = [];
+  let aborted = false;
+  let stats = {skipped:0, failed:0, heic:0};
+
+  // ---------- Kleine Helfer ----------
+  function fmtBytes(bytes){
+    if (bytes < 1024) return bytes + ' B';
+    const units = ['KB','MB','GB','TB'];
+    let u = -1;
+    do { bytes /= 1024; u++; } while (bytes >= 1024 && u < units.length - 1);
+    return bytes.toFixed(1) + ' ' + units[u];
+  }
+  function fmtDate(d){
+    if (!d) return 'ohne Datum';
+    return new Date(d).toLocaleString('de-DE',
+      {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+  function ext(name){ const i = name.lastIndexOf('.'); return i < 0 ? '' : name.slice(i+1).toLowerCase(); }
+  function baseName(name){ const i = name.lastIndexOf('.'); return i < 0 ? name : name.slice(0,i); }
+  function tick(){ return new Promise(r => setTimeout(r, 0)); }
+  function popcount(x){
+    x = x - ((x >>> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+    x = (x + (x >>> 4)) & 0x0f0f0f0f;
+    return (x * 0x01010101) >>> 24;
+  }
+  function dist(a,b){ return popcount((a.lo ^ b.lo) >>> 0) + popcount((a.hi ^ b.hi) >>> 0); }
+  function pctToDist(p){ return Math.round((100 - p) / 100 * 64); }
+  // Die Stufen sind an echten Bilddaten gemessen, nicht geschätzt.
+  function tierName(p){
+    if (p >= 96) return 'nur Kopien – neu komprimiert oder verkleinert (die liegen gemessen bei 95–98 %)';
+    if (p >= 88) return 'Kopien und leicht bearbeitete Versionen';
+    if (p >= 82) return 'Zwischenbereich – hier passiert bei den meisten Mediatheken wenig';
+    if (p >= 76) return 'zusätzlich Serienbilder vom selben Motiv (die liegen gemessen bei rund 78 %)';
+    return 'sehr locker – ab hier sind Fehltreffer wahrscheinlich, schau die Gruppen genau an';
+  }
+
+  // ---------- Zwischenspeicher (IndexedDB) ----------
+  function openDb(){
+    return new Promise((res,rej)=>{
+      const r = indexedDB.open('fotodup-pc', 1);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains('hashes')) db.createObjectStore('hashes');
+        if (!db.objectStoreNames.contains('handles')) db.createObjectStore('handles');
+      };
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function dbGetAll(store){
+    const db = await openDb();
+    return new Promise((res,rej)=>{
+      const tx = db.transaction(store,'readonly').objectStore(store);
+      const rk = tx.getAllKeys(), rv = tx.getAll();
+      let keys = null, vals = null;
+      rk.onsuccess = () => { keys = rk.result; if (vals) done(); };
+      rv.onsuccess = () => { vals = rv.result; if (keys) done(); };
+      rk.onerror = rv.onerror = () => rej(rk.error || rv.error);
+      function done(){ const m = new Map(); keys.forEach((k,i)=>m.set(k, vals[i])); res(m); }
+    });
+  }
+  async function dbPutMany(store, entries){
+    if (!entries.length) return;
+    const db = await openDb();
+    return new Promise((res,rej)=>{
+      const tx = db.transaction(store,'readwrite');
+      const os = tx.objectStore(store);
+      entries.forEach(([k,v]) => os.put(v,k));
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+  async function dbPut(store, key, val){
+    const db = await openDb();
+    return new Promise((res,rej)=>{
+      const tx = db.transaction(store,'readwrite');
+      tx.objectStore(store).put(val, key);
+      tx.oncomplete = () => res();
+      tx.onerror = () => rej(tx.error);
+    });
+  }
+  async function dbGet(store, key){
+    const db = await openDb();
+    return new Promise((res,rej)=>{
+      const r = db.transaction(store,'readonly').objectStore(store).get(key);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+
+  // ---------- Hintergrund-Prozess: dekodieren, Fingerabdruck, EXIF ----------
+  const WORKER_SRC = `
+  function readMeta(buf){
+    var out = {make:null, date:null};
+    try{
+      var view = new DataView(buf);
+      if (view.getUint16(0) !== 0xFFD8) return out;
+      var offset = 2, len = view.byteLength;
+      while (offset + 4 < len){
+        var marker = view.getUint16(offset);
+        if (marker === 0xFFDA) break;
+        if (marker === 0xFFE1){
+          var segStart = offset + 4;
+          if (segStart + 6 < len && view.getUint32(segStart) === 0x45786966){
+            return parseTiff(view, segStart + 6);
+          }
+        }
+        offset += 2 + view.getUint16(offset + 2);
+      }
+    } catch(e){}
+    return out;
+  }
+  function parseTiff(view, tiffStart){
+    var out = {make:null, date:null};
+    try{
+      var little = view.getUint16(tiffStart) === 0x4949;
+      var g16 = function(o){ return view.getUint16(o, little); };
+      var g32 = function(o){ return view.getUint32(o, little); };
+      var str = function(o, n){
+        var s = '';
+        for (var c = 0; c < n; c++){ var code = view.getUint8(o + c); if (!code) break; s += String.fromCharCode(code); }
+        return s;
+      };
+      var ifd0 = tiffStart + g32(tiffStart + 4);
+      var n0 = g16(ifd0), exifIfd = null;
+      for (var i = 0; i < n0; i++){
+        var e = ifd0 + 2 + i * 12, tag = g16(e), cnt = g32(e + 4);
+        if (tag === 0x8769) exifIfd = tiffStart + g32(e + 8);
+        else if (tag === 0x010F){
+          var off = cnt > 4 ? tiffStart + g32(e + 8) : e + 8;
+          out.make = str(off, Math.min(cnt, 40)).trim() || null;
+        } else if (tag === 0x0132 && !out.date){
+          out.date = str(cnt > 4 ? tiffStart + g32(e + 8) : e + 8, 19);
+        }
+      }
+      if (exifIfd && exifIfd + 2 < view.byteLength){
+        var nE = g16(exifIfd);
+        for (var j = 0; j < nE; j++){
+          var e2 = exifIfd + 2 + j * 12, tag2 = g16(e2), cnt2 = g32(e2 + 4);
+          if (tag2 === 0x9003){
+            out.date = str(cnt2 > 4 ? tiffStart + g32(e2 + 8) : e2 + 8, 19);
+            break;
+          }
+        }
+      }
+    } catch(e){}
+    return out;
+  }
+  function toMs(s){
+    if (!s) return null;
+    var m = /^(\\d{4}):(\\d{2}):(\\d{2})[ T](\\d{2}):(\\d{2}):(\\d{2})/.exec(s);
+    if (!m) return null;
+    return new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]).getTime();
+  }
+
+  self.onmessage = async function(ev){
+    var job = ev.data;
+    try {
+      var file = await job.handle.getFile();
+      var head = await file.slice(0, 262144).arrayBuffer();
+      var meta = readMeta(head);
+
+      var sha = null;
+      if (job.needSha){
+        var full = await file.arrayBuffer();
+        var dg = await crypto.subtle.digest('SHA-256', full);
+        var arr = new Uint8Array(dg), hex = '';
+        for (var k = 0; k < arr.length; k++) hex += arr[k].toString(16).padStart(2,'0');
+        sha = hex;
+      }
+
+      var bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      var w = bmp.width, h = bmp.height;
+      var cv = new OffscreenCanvas(9, 8);
+      var ctx = cv.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(bmp, 0, 0, 9, 8);
+      bmp.close();
+      var px = ctx.getImageData(0, 0, 9, 8).data;
+
+      var lo = 0, hi = 0, bit = 0;
+      for (var y = 0; y < 8; y++){
+        for (var x = 0; x < 8; x++){
+          var i = (y * 9 + x) * 4, j = (y * 9 + x + 1) * 4;
+          var g1 = px[i] * 0.299 + px[i+1] * 0.587 + px[i+2] * 0.114;
+          var g2 = px[j] * 0.299 + px[j+1] * 0.587 + px[j+2] * 0.114;
+          var b = g1 > g2 ? 1 : 0;
+          if (bit < 32) lo |= b << bit; else hi |= b << (bit - 32);
+          bit++;
+        }
+      }
+
+      self.postMessage({ id: job.id, ok: true,
+        lo: lo >>> 0, hi: hi >>> 0, w: w, h: h,
+        make: meta.make, date: toMs(meta.date), sha: sha });
+    } catch (err){
+      self.postMessage({ id: job.id, ok: false, error: String((err && err.message) || err) });
+    }
+  };
+  `;
+  const workerUrl = URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}));
+
+  // ---------- Ordner einlesen ----------
+  async function walk(dir, parts, out, onCount){
+    for await (const entry of dir.values()){
+      if (aborted) return;
+      if (entry.kind === 'directory'){
+        await walk(entry, parts.concat(entry.name), out, onCount);
+      } else {
+        const e = ext(entry.name);
+        const relDir = parts.join('/') || '.';
+        if (IMAGE_EXT.includes(e)){
+          out.push({ handle: entry, parent: dir, name: entry.name, dir: relDir,
+                     relPath: (relDir === '.' ? '' : relDir + '/') + entry.name });
+          onCount(out.length);
+        } else if (VIDEO_EXT.includes(e)){
+          movPartners.set(relDir + '\u0000' + baseName(entry.name).toLowerCase(),
+                          { handle: entry, parent: dir, name: entry.name });
+        }
+      }
+    }
+  }
+
+  async function pickFolder(handle){
+    rootHandle = handle;
+    allFiles = []; movPartners = new Map(); aborted = false;
+    show('step3');
+    $('progressLabel').textContent = 'Lese Ordner ein…';
+    $('progressBar').style.width = '0%';
+    $('progressDetail').textContent = '';
+
+    let last = 0;
+    await walk(rootHandle, [], allFiles, (n) => {
+      if (n - last >= 200){ last = n; $('progressDetail').textContent = n + ' Bilder gefunden…'; }
+    });
+    if (aborted){ show('step1'); return; }
+
+    // Größe und Änderungsdatum brauchen wir für Zwischenspeicher und Vorfilter.
+    $('progressLabel').textContent = 'Lese Dateigrößen…';
+    for (let i = 0; i < allFiles.length; i++){
+      if (aborted){ show('step1'); return; }
+      const f = await allFiles[i].handle.getFile();
+      allFiles[i].size = f.size;
+      allFiles[i].mtime = f.lastModified;
+      if (i % 250 === 0){
+        $('progressBar').style.width = Math.round(i / allFiles.length * 100) + '%';
+        $('progressDetail').textContent = i + ' von ' + allFiles.length;
+        await tick();
+      }
+    }
+
+    try { await dbPut('handles', 'root', rootHandle); } catch(e){ /* nicht kritisch */ }
+    renderFolders();
+    show('step2');
+  }
+
+  function renderFolders(){
+    const byDir = new Map();
+    allFiles.forEach(f => {
+      if (!byDir.has(f.dir)) byDir.set(f.dir, { count:0, bytes:0 });
+      const d = byDir.get(f.dir); d.count++; d.bytes += f.size;
+    });
+    const dirs = [...byDir.entries()].sort((a,b) => a[0].localeCompare(b[0], 'de'));
+    const totalBytes = allFiles.reduce((s,f)=>s+f.size,0);
+    $('scanSummary').textContent =
+      allFiles.length.toLocaleString('de-DE') + ' Bilder in ' + dirs.length + ' Ordnern, zusammen ' +
+      fmtBytes(totalBytes) + '. ' + movPartners.size.toLocaleString('de-DE') + ' Videodateien erkannt (Live-Photo-Partner).';
+
+    const list = $('folderList');
+    list.innerHTML = '';
+    dirs.forEach(([dir, info]) => {
+      const row = document.createElement('label');
+      row.className = 'folder';
+      row.innerHTML =
+        '<input type="checkbox" checked data-dir="' + dir.replace(/"/g,'&quot;') + '">' +
+        '<span>' + (dir === '.' ? '(Hauptordner)' : dir) + '</span>' +
+        '<span class="cnt">' + info.count.toLocaleString('de-DE') + ' · ' + fmtBytes(info.bytes) + '</span>';
+      list.appendChild(row);
+    });
+  }
+
+  function selectedDirs(){
+    return new Set([...$('folderList').querySelectorAll('input:checked')].map(c => c.dataset.dir));
+  }
+
+  // ---------- Analyse ----------
+  async function analyze(){
+    const dirs = selectedDirs();
+    const todo = allFiles.filter(f => dirs.has(f.dir));
+    if (!todo.length){ alert('Kein Ordner ausgewählt.'); return; }
+
+    aborted = false;
+    stats = {skipped:0, failed:0, heic:0};
+    analyzed = [];
+    objectUrls.forEach(u => URL.revokeObjectURL(u));
+    objectUrls = [];
+    show('step3');
+    $('progressLabel').textContent = 'Berechne Fingerabdrücke…';
+
+    // Nur bei gleicher Dateigröße lohnt der teure SHA-256-Vergleich für bit-genaue Duplikate.
+    const sizeCount = new Map();
+    todo.forEach(f => sizeCount.set(f.size, (sizeCount.get(f.size) || 0) + 1));
+
+    const cache = await dbGetAll('hashes');
+    const fresh = [];
+    const jobs = [];
+    todo.forEach((f, i) => {
+      const key = f.relPath + '|' + f.size + '|' + f.mtime;
+      const hit = cache.get(key);
+      const needSha = sizeCount.get(f.size) > 1;
+      if (hit && (!needSha || hit.sha)){
+        analyzed.push(Object.assign({}, f, hit, {key:key}));
+      } else {
+        jobs.push({ idx: jobs.length, file: f, key: key, needSha: needSha });
+      }
+    });
+
+    const cachedCount = analyzed.length;
+    $('progressDetail').textContent = cachedCount
+      ? cachedCount.toLocaleString('de-DE') + ' aus dem Zwischenspeicher übernommen.'
+      : '';
+
+    if (jobs.length){
+      await runWorkers(jobs, fresh, cachedCount, todo.length);
+      if (aborted){ show('step2'); return; }
+      await dbPutMany('hashes', fresh.map(r => [r.key, {
+        lo:r.lo, hi:r.hi, date:r.date, w:r.w, h:r.h, sha:r.sha, isShot:r.isShot
+      }]));
+    }
+
+    if (aborted){ show('step2'); return; }
+    await buildGroups();
+    if (aborted){ show('step2'); return; }
+    render();
+    show('step4');
+  }
+
+  function runWorkers(jobs, fresh, offsetDone, total){
+    return new Promise((resolve) => {
+      const pool = [];
+      let next = 0, done = 0, live = 0;
+
+      const finish = () => {
+        pool.forEach(w => w.terminate());
+        resolve();
+      };
+
+      const dispatch = (w) => {
+        if (aborted || next >= jobs.length){
+          if (live === 0) finish();
+          return;
+        }
+        const job = jobs[next++];
+        live++;
+        w._job = job;
+        w.postMessage({ id: job.idx, handle: job.file.handle, needSha: job.needSha });
+      };
+
+      for (let i = 0; i < WORKERS; i++){
+        const w = new Worker(workerUrl);
+        w.onmessage = (ev) => {
+          const res = ev.data, job = w._job;
+          live--; done++;
+          if (res.ok){
+            const isShot = classifyScreenshot(job.file, res);
+            const rec = {
+              key: job.key, lo: res.lo, hi: res.hi, w: res.w, h: res.h,
+              sha: res.sha, isShot: isShot,
+              date: res.date || job.file.mtime || null
+            };
+            fresh.push(rec);
+            analyzed.push(Object.assign({}, job.file, rec));
+          } else {
+            stats.failed++;
+            if (['heic','heif'].includes(ext(job.file.name))) stats.heic++;
+          }
+          const d = offsetDone + done;
+          const pct = Math.round(d / total * 100);
+          $('progressBar').style.width = pct + '%';
+          if (done % 10 === 0 || done === jobs.length){
+            $('progressDetail').textContent =
+              d.toLocaleString('de-DE') + ' von ' + total.toLocaleString('de-DE') +
+              ' (' + pct + '%)' + (stats.failed ? ' · ' + stats.failed + ' nicht lesbar' : '');
+          }
+          dispatch(w);
+        };
+        w.onerror = () => { live--; done++; stats.failed++; dispatch(w); };
+        pool.push(w);
+      }
+      pool.forEach(dispatch);
+    });
+  }
+
+  // Screenshots: PNG, oder Bildschirmauflösung ohne Kamera-Angabe im EXIF.
+  function classifyScreenshot(file, res){
+    if (['png'].includes(ext(file.name))) return true;
+    if (res.make) return false;
+    const a = res.w + 'x' + res.h, b = res.h + 'x' + res.w;
+    return SCREEN_RES.has(a) || SCREEN_RES.has(b);
+  }
+
+  // ---------- Gruppieren ----------
+  async function buildGroups(){
+    stats.skipped = analyzed.filter(a => a.isShot).length;
+    const pool = analyzed.filter(a => !a.isShot);
+
+    // 1) Bit-identische Duplikate über SHA-256.
+    const bySha = new Map();
+    pool.forEach(a => {
+      if (!a.sha) return;
+      if (!bySha.has(a.sha)) bySha.set(a.sha, []);
+      bySha.get(a.sha).push(a);
+    });
+    exactGroups = [...bySha.values()].filter(g => g.length > 1).map(items => makeGroup(items, true));
+
+    const inExact = new Set();
+    exactGroups.forEach(g => g.files.forEach((f,i) => { if (i !== g.keepIndex) inExact.add(f); }));
+
+    // 2) Ähnliche Bilder: einmalig alle Paare bis zur lockersten Stufe sammeln.
+    //    Danach kostet jede Regler-Bewegung nur noch ein Filtern dieser Liste.
+    //    Der Vergleich ist quadratisch, deshalb häppchenweise mit Fortschritt,
+    //    sonst steht der Browser bei 15.000 Bildern sekundenlang.
+    const rest = pool.filter(a => !inExact.has(a));
+    const PAIR_CAP = 400000;
+    pairs = [];
+    stats.capped = false;
+    $('progressLabel').textContent = 'Vergleiche Bilder…';
+    for (let i = 0; i < rest.length; i++){
+      const a = rest[i];
+      for (let j = i + 1; j < rest.length; j++){
+        const d = dist(a, rest[j]);
+        if (d <= MAX_DIST){
+          if (pairs.length >= PAIR_CAP){ stats.capped = true; break; }
+          pairs.push({ a: i, b: j, d: d });
+        }
+      }
+      if (stats.capped) break;
+      if ((i & 255) === 0){
+        $('progressBar').style.width = Math.round(i / rest.length * 100) + '%';
+        $('progressDetail').textContent =
+          i.toLocaleString('de-DE') + ' von ' + rest.length.toLocaleString('de-DE') + ' verglichen · ' +
+          pairs.length.toLocaleString('de-DE') + ' Treffer';
+        await tick();
+        if (aborted) return;
+      }
+    }
+    pairs._items = rest;
+  }
+
+  // Strenge Gruppen: jedes Mitglied muss mit jedem anderen unter der Schwelle liegen.
+  function clusterStrict(maxDist){
+    const items = pairs._items || [];
+    const adj = new Map();
+    const deg = new Map();
+    pairs.forEach(p => {
+      if (p.d > maxDist) return;
+      if (!adj.has(p.a)) adj.set(p.a, new Set());
+      if (!adj.has(p.b)) adj.set(p.b, new Set());
+      adj.get(p.a).add(p.b); adj.get(p.b).add(p.a);
+    });
+    adj.forEach((s,k) => deg.set(k, s.size));
+
+    const used = new Set();
+    const groups = [];
+    const order = [...adj.keys()].sort((x,y) => deg.get(y) - deg.get(x));
+    order.forEach(seed => {
+      if (used.has(seed)) return;
+      // Kandidaten nach Nähe zum Startbild sortieren, dann nur aufnehmen,
+      // wer zu allen bereits aufgenommenen ebenfalls passt.
+      const cand = [...adj.get(seed)].filter(n => !used.has(n))
+        .sort((x,y) => dist(items[seed], items[x]) - dist(items[seed], items[y]));
+      const clique = [seed];
+      cand.forEach(c => {
+        if (clique.every(m => adj.get(m) && adj.get(m).has(c))) clique.push(c);
+      });
+      if (clique.length > 1){
+        clique.forEach(m => used.add(m));
+        groups.push(makeGroup(clique.map(i => items[i]), false));
+      }
+    });
+    return groups;
+  }
+
+  // Behalten wird die größte Datei; bei Gleichstand die ältere.
+  function makeGroup(items, isExact){
+    const files = items.slice().sort((a,b) => {
+      if (b.size !== a.size) return b.size - a.size;
+      return (a.date || 0) - (b.date || 0);
+    });
+    return { files: files, keepIndex: 0, exact: isExact };
+  }
+
+  // ---------- Anzeige ----------
+  // Vorschaubilder erst laden, wenn sie ins Bild scrollen. Bei tausenden Gruppen
+  // würde sonst die komplette Mediathek gleichzeitig im Speicher landen.
+  let thumbObserver = null;
+  function resetThumbs(){
+    if (thumbObserver) thumbObserver.disconnect();
+    objectUrls.forEach(u => URL.revokeObjectURL(u));
+    objectUrls = [];
+    thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        thumbObserver.unobserve(en.target);
+        loadThumb(en.target, en.target._file);
+      });
+    }, { rootMargin: '400px' });
+  }
+
+  async function loadThumb(img, f){
+    if (!f) return;
+    try{
+      const file = await f.handle.getFile();
+      const url = URL.createObjectURL(file);
+      objectUrls.push(url);
+      img.src = url;
+    } catch(e){ /* Datei inzwischen weg */ }
+  }
+
+  function currentGroups(){
+    const p = +$('threshold').value;
+    return exactGroups.concat(p >= 100 ? [] : clusterStrict(pctToDist(p)));
+  }
+
+  let renderedGroups = [];
+
+  function render(){
+    const p = +$('threshold').value;
+    $('thresholdVal').textContent = p + ' %';
+    $('tierLabel').textContent = 'Fasst zusammen: ' + tierName(p);
+
+    renderedGroups = currentGroups();
+
+    const totalExtra = renderedGroups.reduce((s,g)=>s+g.files.length-1,0);
+    const totalBytes = renderedGroups.reduce((s,g)=>
+      s + g.files.reduce((s2,f,i)=> i === g.keepIndex ? s2 : s2 + f.size, 0), 0);
+
+    $('statAnalyzed').textContent = analyzed.length.toLocaleString('de-DE');
+    $('statGroups').textContent = renderedGroups.length.toLocaleString('de-DE');
+    $('statExtra').textContent = totalExtra.toLocaleString('de-DE');
+    $('statSize').textContent = fmtBytes(totalBytes);
+    $('statSkipped').textContent = stats.skipped.toLocaleString('de-DE');
+    $('proceedCount').textContent = totalExtra;
+    $('proceedCard').classList.toggle('hidden', totalExtra === 0);
+
+    const warn = $('decodeWarn');
+    warn.innerHTML = '';
+    if (stats.heic > 0){
+      warn.innerHTML = '<div class="banner err"><b>' + stats.heic + ' HEIC-Dateien konnten nicht gelesen werden.</b><br>' +
+        'Chrome kann HEIC nicht dekodieren. Schalte in iCloud für Windows <i>„Hocheffizientes Original beibehalten"</i> ab, ' +
+        'lass neu synchronisieren und starte den Durchlauf noch einmal. Diese Dateien wurden übersprungen, nicht verglichen.</div>';
+    } else if (stats.failed > 0){
+      warn.innerHTML = '<div class="banner warn">' + stats.failed + ' Dateien konnten nicht gelesen werden und wurden übersprungen.</div>';
+    }
+    if (stats.capped){
+      warn.innerHTML += '<div class="banner warn">Die Obergrenze für Ähnlichkeits-Treffer wurde erreicht. ' +
+        'Es wird nur ein Teil deiner Mediathek angezeigt – nimm dir weniger Ordner auf einmal vor.</div>';
+    }
+
+    resetThumbs();
+    const container = $('groupsContainer');
+    container.innerHTML = '';
+    renderedGroups.forEach((group, gi) => {
+      const div = document.createElement('div');
+      div.className = 'group' + (group.exact ? ' exact' : '');
+      const worst = group.exact ? 0 : Math.max(...group.files.map((f,i) =>
+        i === 0 ? 0 : dist(group.files[0], f)));
+      const simPct = Math.round((64 - worst) / 64 * 100);
+      div.innerHTML = '<h3>' +
+        (group.exact
+          ? '✔ Gruppe ' + (gi+1) + ' · bit-identisch · ' + group.files.length + ' Dateien'
+          : 'Gruppe ' + (gi+1) + ' · ähnlich zu ~' + simPct + ' % · ' + group.files.length + ' Dateien') +
+        '</h3>';
+      const thumbs = document.createElement('div');
+      thumbs.className = 'thumbs';
+      group.files.forEach((f, fi) => {
+        const isKeep = fi === group.keepIndex;
+        const t = document.createElement('div');
+        t.className = 'thumb ' + (isKeep ? 'keep' : 'del');
+        t.innerHTML =
+          '<img loading="lazy">' +
+          '<div class="meta">' + f.name + '<br>' + fmtDate(f.date) + '<br>' +
+            fmtBytes(f.size) + ' · ' + f.w + '×' + f.h + '</div>' +
+          '<span class="tag ' + (isKeep?'keep':'del') + '">' + (isKeep ? 'BEHALTEN' : 'LÖSCHEN') + '</span>' +
+          '<button class="pick" data-g="' + gi + '" data-f="' + fi + '"' +
+            (isKeep ? ' style="visibility:hidden;"' : '') + '>stattdessen dieses behalten</button>';
+        thumbs.appendChild(t);
+        const img = t.querySelector('img');
+        img._file = f;
+        thumbObserver.observe(img);
+      });
+      div.appendChild(thumbs);
+      container.appendChild(div);
+    });
+
+    container.querySelectorAll('.pick').forEach(btn => {
+      btn.addEventListener('click', () => {
+        renderedGroups[+btn.dataset.g].keepIndex = +btn.dataset.f;
+        // Nur diese Gruppe neu zeichnen wäre schöner; für die Menge hier reicht ein Neuaufbau.
+        const snapshot = renderedGroups;
+        renderPreserving(snapshot);
+      });
+    });
+  }
+
+  // Beim Umschalten des Behalten-Bildes darf die Gruppierung nicht neu gewürfelt werden.
+  function renderPreserving(groups){
+    const container = $('groupsContainer');
+    const scroll = window.scrollY;
+    renderedGroups = groups;
+    const totalExtra = groups.reduce((s,g)=>s+g.files.length-1,0);
+    const totalBytes = groups.reduce((s,g)=>
+      s + g.files.reduce((s2,f,i)=> i === g.keepIndex ? s2 : s2 + f.size, 0), 0);
+    $('statExtra').textContent = totalExtra.toLocaleString('de-DE');
+    $('statSize').textContent = fmtBytes(totalBytes);
+    $('proceedCount').textContent = totalExtra;
+    container.querySelectorAll('.group').forEach((div, gi) => {
+      const g = groups[gi];
+      div.querySelectorAll('.thumb').forEach((t, fi) => {
+        const isKeep = fi === g.keepIndex;
+        t.className = 'thumb ' + (isKeep ? 'keep' : 'del');
+        const tag = t.querySelector('.tag');
+        tag.className = 'tag ' + (isKeep ? 'keep' : 'del');
+        tag.textContent = isKeep ? 'BEHALTEN' : 'LÖSCHEN';
+        const btn = t.querySelector('.pick');
+        if (btn) btn.style.visibility = isKeep ? 'hidden' : 'visible';
+      });
+    });
+    window.scrollTo({top:scroll});
+  }
+
+  // ---------- Trockenlauf ----------
+  let deleteList = [];
+
+  function buildDeleteList(){
+    deleteList = [];
+    renderedGroups.forEach((g, gi) => {
+      g.files.forEach((f, fi) => {
+        if (fi === g.keepIndex) return;
+        const partner = movPartners.get(f.dir + '\u0000' + baseName(f.name).toLowerCase()) || null;
+        deleteList.push({ file: f, partner: partner, group: gi + 1, exact: g.exact, keep: g.files[g.keepIndex] });
+      });
+    });
+  }
+
+  function dryRunText(){
+    const lines = deleteList.map((d,i) =>
+      (i+1) + '. ' + d.file.relPath + '\n' +
+      '    ' + fmtBytes(d.file.size) + ' · ' + d.file.w + '×' + d.file.h + ' · ' + fmtDate(d.file.date) + '\n' +
+      '    Gruppe ' + d.group + ' (' + (d.exact ? 'bit-identisch' : 'ähnlich') + '), behalten wird: ' + d.keep.relPath +
+      (d.partner ? '\n    + Live-Photo-Video: ' + d.partner.name : '')
+    );
+    const bytes = deleteList.reduce((s,d)=>s+d.file.size,0);
+    return 'Zu löschende Dateien: ' + deleteList.length + '\n' +
+           'Freiwerdender Platz: ' + fmtBytes(bytes) + '\n' +
+           'Ordner: ' + (rootHandle ? rootHandle.name : '?') + '\n' +
+           'Erstellt: ' + new Date().toLocaleString('de-DE') + '\n\n' + lines.join('\n\n');
+  }
+
+  function showDryRun(){
+    buildDeleteList();
+    const withPartner = deleteList.filter(d => d.partner).length;
+    const bytes = deleteList.reduce((s,d)=>s+d.file.size,0);
+    $('dryRunSummary').textContent =
+      deleteList.length.toLocaleString('de-DE') + ' Dateien, ' + fmtBytes(bytes) + '. ' +
+      (withPartner ? withPartner + ' davon sind Live Photos – die zugehörigen Videodateien werden mitgelöscht.' :
+                     'Keine Live-Photo-Videos betroffen.');
+    $('dryRunList').textContent = dryRunText();
+    $('delCount').textContent = deleteList.length;
+    $('deleteResult').innerHTML = '';
+    show('step5');
+  }
+
+  // ---------- Wirklich löschen ----------
+  async function doDelete(onlyFirst){
+    const items = onlyFirst ? deleteList.slice(0,1) : deleteList;
+    if (!items.length) return;
+
+    if (!onlyFirst){
+      const ok = confirm('Wirklich ' + items.length + ' Dateien löschen?\n\n' +
+        'Sie gehen nicht in den Windows-Papierkorb. Rückholbar sind sie nur über ' +
+        '„Zuletzt gelöscht" in iCloud, 30 Tage lang.');
+      if (!ok) return;
+    }
+
+    $('btnDeleteOne').disabled = true;
+    $('btnDeleteAll').disabled = true;
+
+    let ok = 0, fail = 0, partners = 0;
+    const errors = [];
+    for (const d of items){
+      try {
+        await d.file.parent.removeEntry(d.file.name);
+        ok++;
+        if (d.partner){
+          try { await d.partner.parent.removeEntry(d.partner.name); partners++; } catch(e){ /* Partner egal */ }
+        }
+        d.done = true;
+      } catch(e){
+        fail++;
+        errors.push(d.file.relPath + ' – ' + ((e && e.message) || e));
+      }
+    }
+
+    deleteList = deleteList.filter(d => !d.done);
+    $('delCount').textContent = deleteList.length;
+    $('btnDeleteOne').disabled = deleteList.length === 0;
+    $('btnDeleteAll').disabled = deleteList.length === 0;
+
+    $('deleteResult').innerHTML =
+      '<div class="banner ' + (fail ? 'warn' : 'info') + '" style="margin-top:14px;">' +
+      '<b>' + ok + ' Dateien gelöscht</b>' + (partners ? ', dazu ' + partners + ' Live-Photo-Videos' : '') +
+      (fail ? '<br>' + fail + ' Fehler:<br>' + errors.slice(0,10).join('<br>') : '') +
+      (onlyFirst ? '<br><br>Jetzt am iPhone in der Fotos-App nachschauen, ob das Bild verschwunden ist. ' +
+                   'Der Sync braucht je nach Verbindung ein paar Minuten.' : '') +
+      '</div>';
+  }
+
+  // ---------- Verdrahtung ----------
+  $('btnPick').addEventListener('click', async () => {
+    try {
+      const h = await window.showDirectoryPicker({ mode:'readwrite', id:'icloud-photos' });
+      await pickFolder(h);
+    } catch(e){ /* abgebrochen */ }
+  });
+
+  $('btnResume').addEventListener('click', async () => {
+    try {
+      const h = await dbGet('handles','root');
+      if (!h) return;
+      let perm = await h.queryPermission({mode:'readwrite'});
+      if (perm !== 'granted') perm = await h.requestPermission({mode:'readwrite'});
+      if (perm !== 'granted'){ alert('Ohne Schreibrechte kann die Seite nichts löschen.'); return; }
+      await pickFolder(h);
+    } catch(e){ alert('Der Ordner ist nicht mehr erreichbar. Bitte neu auswählen.'); }
+  });
+
+  dbGet('handles','root').then(h => { if (h) $('btnResume').classList.remove('hidden'); }).catch(()=>{});
+
+  $('btnSelAll').addEventListener('click', () =>
+    $('folderList').querySelectorAll('input').forEach(c => c.checked = true));
+  $('btnSelNone').addEventListener('click', () =>
+    $('folderList').querySelectorAll('input').forEach(c => c.checked = false));
+
+  $('btnAnalyze').addEventListener('click', analyze);
+  $('btnAbort').addEventListener('click', () => { aborted = true; });
+  $('btnRestart').addEventListener('click', () => show('step2'));
+  $('threshold').addEventListener('input', () => {
+    $('thresholdVal').textContent = $('threshold').value + ' %';
+    $('tierLabel').textContent = 'Fasst zusammen: ' + tierName(+$('threshold').value);
+  });
+  $('threshold').addEventListener('change', render);
+  $('btnDryRun').addEventListener('click', showDryRun);
+  $('btnBackToResults').addEventListener('click', () => show('step4'));
+  $('btnDownload').addEventListener('click', () => {
+    const blob = new Blob([dryRunText()], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'duplikate-trockenlauf.txt';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
+  $('btnDeleteOne').addEventListener('click', () => doDelete(true));
+  $('btnDeleteAll').addEventListener('click', () => doDelete(false));
+
+})();
+</script>
+</body>
+</html>
