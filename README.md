@@ -8,3 +8,7 @@ Eine kleine Web-App, die exakte (bit-identische) Foto-Duplikate findet — kompl
 - Geführte Checkliste zum Löschen in der Fotos-App
 
 Statische Single-File-App: `index.html`, keine Abhängigkeiten, kein Build.
+
+---
+
+Deployed via Vercel.
