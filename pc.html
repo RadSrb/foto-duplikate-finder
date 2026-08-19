@@ -627,10 +627,9 @@
 
   // Screenshots: PNG, oder Bildschirmauflösung ohne Kamera-Angabe im EXIF.
   function classifyScreenshot(file, res){
-    if (['png'].includes(ext(file.name))) return true;
+    if (ext(file.name) === 'png') return true;
     if (res.make) return false;
-    const a = res.w + 'x' + res.h, b = res.h + 'x' + res.w;
-    return SCREEN_RES.has(a) || SCREEN_RES.has(b);
+    return SCREEN_RES.has(res.w + 'x' + res.h) || SCREEN_RES.has(res.h + 'x' + res.w);
   }
 
   // ---------- Gruppieren ----------
@@ -685,22 +684,17 @@
   function clusterStrict(maxDist){
     const items = pairs._items || [];
     const adj = new Map();
-    const deg = new Map();
     pairs.forEach(p => {
       if (p.d > maxDist) return;
       if (!adj.has(p.a)) adj.set(p.a, new Set());
       if (!adj.has(p.b)) adj.set(p.b, new Set());
       adj.get(p.a).add(p.b); adj.get(p.b).add(p.a);
     });
-    adj.forEach((s,k) => deg.set(k, s.size));
 
-    const used = new Set();
-    const groups = [];
-    const order = [...adj.keys()].sort((x,y) => deg.get(y) - deg.get(x));
+    const used = new Set(), groups = [];
+    const order = [...adj.keys()].sort((x,y) => adj.get(y).size - adj.get(x).size);
     order.forEach(seed => {
       if (used.has(seed)) return;
-      // Kandidaten nach Nähe zum Startbild sortieren, dann nur aufnehmen,
-      // wer zu allen bereits aufgenommenen ebenfalls passt.
       const cand = [...adj.get(seed)].filter(n => !used.has(n))
         .sort((x,y) => dist(items[seed], items[x]) - dist(items[seed], items[y]));
       const clique = [seed];

@@ -5,8 +5,15 @@ Zwei Werkzeuge gegen doppelte Fotos. Beide rechnen ausschließlich lokal im Brow
 | | [`index.html`](index.html) — iPhone | [`pc.html`](pc.html) — Computer |
 |---|---|---|
 | Läuft in | Safari, jedem Browser | nur Chrome / Edge am PC |
-| Findet | nur bit-identische Dateien | bit-identische **und** ähnliche Bilder |
+| Findet | bit-identische **und** ähnliche Bilder | bit-identische **und** ähnliche Bilder |
 | Löscht | nichts, erzeugt eine Checkliste | löscht die Dateien wirklich |
+| Rechnet | im Haupt-Thread (Safari kennt kein OffscreenCanvas) | parallel in Web Workern |
+| HEIC | dekodiert Safari nativ | nur nach Umstellung auf JPEG |
+
+## Beide Seiten nutzen dasselbe Verfahren
+
+Der Fingerabdruck-Vergleich ist in beiden Dateien wortgleich (ein Testskript prüft das),
+damit Handy und PC über dieselben Fotos nicht verschieden urteilen.
 
 ## `pc.html` — die PC-Version
 

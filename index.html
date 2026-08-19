@@ -21,7 +21,7 @@
   .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
     padding:16px;margin-bottom:16px;}
   button{font-size:1rem;border:none;border-radius:12px;padding:14px 18px;
-    font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+    font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;}
   .btn-primary{background:var(--accent);color:#fff;width:100%;}
   .btn-primary:disabled{opacity:.4;}
   .btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);width:100%;}
@@ -31,16 +31,17 @@
   .hint{font-size:0.8rem;color:var(--muted);line-height:1.4;margin-top:10px;}
   .progress-wrap{background:var(--card2);border-radius:8px;height:10px;overflow:hidden;margin:12px 0;}
   .progress-bar{height:100%;background:var(--accent);width:0%;transition:width .15s;}
-  .stats{display:flex;gap:10px;margin:14px 0;}
-  .stat{flex:1;background:var(--card2);border-radius:12px;padding:12px;text-align:center;}
-  .stat .num{font-size:1.4rem;font-weight:700;}
-  .stat .label{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .stat{flex:1;min-width:74px;background:var(--card2);border-radius:12px;padding:12px 8px;text-align:center;}
+  .stat .num{font-size:1.3rem;font-weight:700;}
+  .stat .label{font-size:0.68rem;color:var(--muted);margin-top:2px;line-height:1.25;}
   .group{background:var(--card2);border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid var(--border);}
-  .group h3{font-size:0.85rem;margin:0 0 10px;color:var(--muted);font-weight:600;}
+  .group.exact{border-color:rgba(62,207,142,.35);}
+  .group h3{font-size:0.82rem;margin:0 0 10px;color:var(--muted);font-weight:600;}
   .thumbs{display:flex;flex-wrap:wrap;gap:10px;}
   .thumb{width:104px;}
   .thumb img{width:104px;height:104px;object-fit:cover;border-radius:10px;display:block;
-    border:2px solid transparent;}
+    border:2px solid transparent;background:var(--card);}
   .thumb.keep img{border-color:var(--keep);}
   .thumb.del img{border-color:var(--danger);opacity:.55;}
   .thumb .meta{font-size:0.68rem;color:var(--muted);margin-top:4px;line-height:1.3;word-break:break-word;}
@@ -54,6 +55,10 @@
   .switch::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;
     background:#fff;top:2px;left:2px;transition:left .15s;}
   .switch.on::after{left:18px;}
+  .slider-row{display:flex;align-items:center;gap:14px;margin:6px 0 2px;}
+  input[type=range]{flex:1;accent-color:var(--accent);}
+  .slider-val{font-weight:700;font-size:1.05rem;min-width:52px;text-align:right;}
+  .tier{font-size:0.78rem;color:var(--muted);line-height:1.4;}
   .checklist-item{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);}
   .checklist-item.done{opacity:.4;}
   .checklist-item img{width:64px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;}
@@ -62,6 +67,8 @@
   .checkbox{width:26px;height:26px;border-radius:8px;border:2px solid var(--border);
     flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.9rem;}
   .checkbox.done{background:var(--keep);border-color:var(--keep);}
+  .banner{border-radius:10px;padding:10px 12px;font-size:0.8rem;line-height:1.5;margin-bottom:12px;}
+  .banner.warn{background:rgba(255,180,84,.1);border:1px solid rgba(255,180,84,.3);color:var(--muted);}
   .hidden{display:none !important;}
   .center{text-align:center;}
   .top-actions{display:flex;gap:10px;margin-top:14px;}
@@ -85,14 +92,14 @@
   <section id="step1" class="card center">
     <div id="dropHint">
       <p style="margin:0 0 6px;font-size:1rem;">Wähle die Fotos aus, die geprüft werden sollen</p>
-      <p class="hint" style="margin:0;">Tipp: In der Fotos-App ein Album oder mehrere Fotos auswählen, dann hier auswählen. Bei sehr großer Mediathek lieber in Etappen (z.B. je 200–500 Fotos) prüfen.</p>
+      <p class="hint" style="margin:0;">Tipp: In der Fotos-App ein Album oder mehrere Fotos auswählen, dann hier auswählen. Jedes Foto muss dafür entschlüsselt werden – nimm dir lieber 200–500 Stück auf einmal vor.</p>
     </div>
     <label class="picker-label" style="margin-top:16px;">
       <input type="file" id="fileInput" multiple accept="image/*">
       <span class="btn-primary" style="display:block;">Fotos auswählen</span>
     </label>
     <div class="badge-privacy">🔒 Analyse erfolgt lokal im Browser. Es werden keine Daten irgendwohin gesendet.</div>
-    <a class="link-btn" href="./pc.html">Am Computer mit Chrome? Dort findet die App auch ähnliche Bilder und löscht wirklich →</a>
+    <a class="link-btn" href="./pc.html">Am Computer mit Chrome? Dort löscht die App wirklich →</a>
   </section>
 
   <!-- STEP 2: Fortschritt -->
@@ -100,25 +107,36 @@
     <p id="progressLabel">Analysiere Fotos…</p>
     <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
     <p class="hint" id="progressDetail"></p>
+    <button class="btn-ghost" id="btnAbort" style="margin-top:10px;">Abbrechen</button>
   </section>
 
   <!-- STEP 3: Ergebnisse -->
   <section id="step3" class="hidden">
     <div class="card">
+      <div id="decodeWarn"></div>
       <div class="stats">
         <div class="stat"><div class="num" id="statAnalyzed">0</div><div class="label">geprüft</div></div>
-        <div class="stat"><div class="num" id="statGroups">0</div><div class="label">Duplikat-Gruppen</div></div>
-        <div class="stat"><div class="num" id="statExtra">0</div><div class="label">überflüssige Kopien</div></div>
+        <div class="stat"><div class="num" id="statGroups">0</div><div class="label">Gruppen</div></div>
+        <div class="stat"><div class="num" id="statExtra">0</div><div class="label">zum Löschen</div></div>
         <div class="stat"><div class="num" id="statSize">0</div><div class="label">sparbar</div></div>
+        <div class="stat"><div class="num" id="statSkipped">0</div><div class="label">Screenshots übersprungen</div></div>
       </div>
-      <p class="hint hidden" id="noDupHint">Keine exakten Duplikate gefunden. 🔍 Es werden nur bit-identische Dateien erkannt – leicht veränderte Kopien (z.B. neu exportiert, verkleinert) werden bewusst nicht angerührt, um nichts Falsches zu löschen.</p>
+
+      <h2 style="font-size:0.95rem;margin:16px 0 6px;">Ähnlichkeits-Schwelle</h2>
+      <div class="slider-row">
+        <input type="range" id="threshold" min="70" max="100" step="1" value="90">
+        <span class="slider-val" id="thresholdVal">90 %</span>
+      </div>
+      <p class="tier" id="tierLabel"></p>
+      <p class="hint">Gemessen an echten Fotos: neu komprimierte oder verkleinerte Kopien liegen bei <b>95–98 %</b>, Serienbilder vom selben Motiv bei rund <b>78 %</b>. Dazwischen ist eine Lücke – für Serienbilder musst du den Regler deutlich nach links ziehen. Bit-identische Dateien stehen davon unberührt darüber.</p>
+      <p class="hint hidden" id="noDupHint">Keine Duplikate gefunden. Zieh den Regler weiter nach links, wenn du auch Serienbilder erwischen willst.</p>
     </div>
 
     <div id="groupsContainer"></div>
 
     <div class="card" id="proceedCard">
       <button class="btn-danger" id="btnProceed">Löschliste erstellen (<span id="proceedCount">0</span> Fotos)</button>
-      <p class="hint">Safari erlaubt Web-Apps keinen direkten Zugriff auf deine Foto-Bibliothek. Im nächsten Schritt bekommst du eine geführte Checkliste, mit der du die markierten Duplikate schnell selbst in der Fotos-App löschst.</p>
+      <p class="hint">Safari erlaubt Web-Apps keinen Zugriff auf deine Foto-Bibliothek – am Handy kann diese Seite nichts selbst löschen. Im nächsten Schritt bekommst du eine geführte Checkliste, mit der du die markierten Fotos schnell selbst in der Fotos-App löschst.</p>
     </div>
     <button class="btn-ghost" id="btnRestart">Neue Fotos auswählen</button>
   </section>
@@ -148,8 +166,28 @@
   const fileInput = $('fileInput');
   const step1 = $('step1'), step2 = $('step2'), step3 = $('step3'), step4 = $('step4');
 
-  let duplicateGroups = []; // [{files:[{file,url,hash,captureDate}], keepIndex}]
+  // Gemessen an echten Bilddaten: neu komprimierte oder verkleinerte Kopien liegen bei
+  // 95–98 %, Serienbilder bei rund 78 %, verschiedene Bilder unter 55 %. Der Regler muss
+  // deshalb bis 70 % reichen, sonst sind Serienbilder gar nicht erreichbar.
+  const MAX_DIST = 19;   // entspricht 70 %
+
+  // Bekannte iPhone-/iPad-Bildschirmauflösungen: erkennt Screenshots zuverlässiger als der Dateiname.
+  const SCREEN_RES = new Set([
+    '640x1136','750x1334','828x1792','1080x1920','1125x2436','1170x2532','1179x2556',
+    '1206x2622','1242x2688','1284x2778','1290x2796','1320x2868',
+    '1536x2048','1620x2160','1640x2360','1668x2224','1668x2388','2048x2732','1488x2266'
+  ]);
+
+  let analyzed = [];
+  let exactGroups = [], pairs = [], renderedGroups = [];
   let allObjectUrls = [];
+  let aborted = false;
+  let stats = {skipped:0, failed:0};
+
+  // Eine einzige Zeichenfläche für alle Bilder – Safari am iPhone kennt kein OffscreenCanvas.
+  const canvas = document.createElement('canvas');
+  canvas.width = 9; canvas.height = 8;
+  const ctx = canvas.getContext('2d', {willReadFrequently:true});
 
   function showStep(n){
     [step1,step2,step3,step4].forEach((s,i)=> s.classList.toggle('hidden', i !== n-1));
@@ -166,150 +204,285 @@
 
   function fmtDate(d){
     if (!d) return 'unbekanntes Datum';
-    return d.toLocaleString('de-DE', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-  }
-
-  async function hashFile(file){
-    const buf = await file.arrayBuffer();
-    const digest = await crypto.subtle.digest('SHA-256', buf);
-    const hex = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2,'0')).join('');
-    return { hex, buf };
-  }
-
-  // Minimal EXIF DateTimeOriginal reader (JPEG only). Falls back to file.lastModified.
-  function readExifDate(buf){
-    try{
-      const view = new DataView(buf);
-      if (view.getUint16(0) !== 0xFFD8) return null; // not JPEG
-      let offset = 2;
-      const len = view.byteLength;
-      while (offset < len) {
-        if (view.getUint16(offset) === 0xFFE1) { // APP1
-          const segStart = offset + 4;
-          if (view.getUint32(segStart) === 0x45786966) { // "Exif"
-            return parseExifDate(view, segStart + 6);
-          }
-        }
-        const marker = view.getUint16(offset);
-        if (marker === 0xFFDA) break; // start of scan, no more metadata
-        offset += 2 + view.getUint16(offset + 2);
-      }
-    } catch(e){ /* ignore, fallback below */ }
-    return null;
-  }
-
-  function parseExifDate(view, tiffStart){
-    const little = view.getUint16(tiffStart) === 0x4949;
-    const g16 = (o) => view.getUint16(o, little);
-    const g32 = (o) => view.getUint32(o, little);
-    const ifd0Offset = tiffStart + g32(tiffStart + 4);
-    let exifIfdOffset = null;
-    const entries0 = g16(ifd0Offset);
-    for (let i = 0; i < entries0; i++){
-      const entryOffset = ifd0Offset + 2 + i * 12;
-      if (g16(entryOffset) === 0x8769){ exifIfdOffset = tiffStart + g32(entryOffset + 8); break; }
-    }
-    if (!exifIfdOffset) return null;
-    const entriesE = g16(exifIfdOffset);
-    for (let i = 0; i < entriesE; i++){
-      const entryOffset = exifIfdOffset + 2 + i * 12;
-      const tag = g16(entryOffset);
-      if (tag === 0x9003 || tag === 0x0132){ // DateTimeOriginal or DateTime
-        const valueOffset = entryOffset + 8;
-        let str = '';
-        for (let c = 0; c < 19; c++){
-          const code = view.getUint8(valueOffset + c);
-          if (code === 0) break;
-          str += String.fromCharCode(code);
-        }
-        const m = str.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
-        if (m) return new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]);
-      }
-    }
-    return null;
-  }
-
-  async function analyze(files){
-    showStep(2);
-    const progressBar = $('progressBar'), progressDetail = $('progressDetail'), progressLabel = $('progressLabel');
-    progressLabel.textContent = 'Gruppiere nach Dateigröße…';
-    await tick();
-
-    const bySize = new Map();
-    for (const f of files){
-      if (!bySize.has(f.size)) bySize.set(f.size, []);
-      bySize.get(f.size).push(f);
-    }
-    const candidates = [...bySize.values()].filter(g => g.length > 1);
-    const totalToHash = candidates.reduce((s,g)=>s+g.length,0);
-
-    if (totalToHash === 0){
-      finishAnalysis(files.length, []);
-      return;
-    }
-
-    progressLabel.textContent = 'Vergleiche mögliche Duplikate…';
-    const byHash = new Map();
-    let done = 0;
-    for (const group of candidates){
-      for (const f of group){
-        const { hex, buf } = await hashFile(f);
-        const captureDate = readExifDate(buf);
-        const date = captureDate || (f.lastModified ? new Date(f.lastModified) : null);
-        if (!byHash.has(hex)) byHash.set(hex, []);
-        byHash.get(hex).push({ file: f, date });
-        done++;
-        const pct = Math.round(done / totalToHash * 100);
-        progressBar.style.width = pct + '%';
-        progressDetail.textContent = done + ' von ' + totalToHash + ' möglichen Duplikaten geprüft (' + pct + '%)';
-        if (done % 5 === 0) await tick();
-      }
-    }
-
-    const dupGroups = [...byHash.values()].filter(g => g.length > 1);
-    finishAnalysis(files.length, dupGroups);
+    return new Date(d).toLocaleString('de-DE', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
   }
 
   function tick(){ return new Promise(r => setTimeout(r, 0)); }
+  function ext(name){ const i = name.lastIndexOf('.'); return i < 0 ? '' : name.slice(i+1).toLowerCase(); }
 
-  function finishAnalysis(totalAnalyzed, rawGroups){
-    // build display groups, sorted by date ascending (oldest = default keep)
-    duplicateGroups = rawGroups.map(items => {
-      const sorted = items.slice().sort((a,b) => (a.date?.getTime()||0) - (b.date?.getTime()||0));
-      const withMeta = sorted.map(it => ({
-        file: it.file,
-        date: it.date,
-        url: URL.createObjectURL(it.file)
-      }));
-      withMeta.forEach(m => allObjectUrls.push(m.url));
-      return { files: withMeta, keepIndex: 0 }; // default: keep oldest, mark rest for deletion
-    });
+  function popcount(x){
+    x = x - ((x >>> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+    x = (x + (x >>> 4)) & 0x0f0f0f0f;
+    return (x * 0x01010101) >>> 24;
+  }
+  function dist(a,b){ return popcount((a.lo ^ b.lo) >>> 0) + popcount((a.hi ^ b.hi) >>> 0); }
+  function pctToDist(p){ return Math.round((100 - p) / 100 * 64); }
 
-    renderResults(totalAnalyzed);
+  // Die Stufen sind an echten Bilddaten gemessen, nicht geschätzt.
+  function tierName(p){
+    if (p >= 96) return 'nur Kopien – neu komprimiert oder verkleinert (die liegen gemessen bei 95–98 %)';
+    if (p >= 88) return 'Kopien und leicht bearbeitete Versionen';
+    if (p >= 82) return 'Zwischenbereich – hier passiert bei den meisten Mediatheken wenig';
+    if (p >= 76) return 'zusätzlich Serienbilder vom selben Motiv (die liegen gemessen bei rund 78 %)';
+    return 'sehr locker – ab hier sind Fehltreffer wahrscheinlich, schau die Gruppen genau an';
+  }
+
+  // ---------- EXIF: Aufnahmedatum und Kamera-Hersteller ----------
+  function readMeta(buf){
+    const out = {make:null, date:null};
+    try{
+      const view = new DataView(buf);
+      if (view.getUint16(0) !== 0xFFD8) return out; // kein JPEG (z.B. HEIC oder PNG)
+      let offset = 2;
+      const len = view.byteLength;
+      while (offset + 4 < len){
+        const marker = view.getUint16(offset);
+        if (marker === 0xFFDA) break;              // Bilddaten beginnen, keine Metadaten mehr
+        if (marker === 0xFFE1){
+          const segStart = offset + 4;
+          if (segStart + 6 < len && view.getUint32(segStart) === 0x45786966){ // "Exif"
+            return parseTiff(view, segStart + 6);
+          }
+        }
+        offset += 2 + view.getUint16(offset + 2);
+      }
+    } catch(e){ /* unlesbar, Rückfall auf Dateidatum */ }
+    return out;
+  }
+
+  function parseTiff(view, tiffStart){
+    const out = {make:null, date:null};
+    try{
+      const little = view.getUint16(tiffStart) === 0x4949;
+      const g16 = (o) => view.getUint16(o, little);
+      const g32 = (o) => view.getUint32(o, little);
+      const str = (o, n) => {
+        let s = '';
+        for (let c = 0; c < n; c++){ const code = view.getUint8(o + c); if (!code) break; s += String.fromCharCode(code); }
+        return s;
+      };
+      const ifd0 = tiffStart + g32(tiffStart + 4);
+      const n0 = g16(ifd0);
+      let exifIfd = null;
+      for (let i = 0; i < n0; i++){
+        const e = ifd0 + 2 + i * 12, tag = g16(e), cnt = g32(e + 4);
+        if (tag === 0x8769) exifIfd = tiffStart + g32(e + 8);
+        else if (tag === 0x010F) out.make = str(cnt > 4 ? tiffStart + g32(e + 8) : e + 8, Math.min(cnt, 40)).trim() || null;
+        else if (tag === 0x0132 && !out.date) out.date = str(cnt > 4 ? tiffStart + g32(e + 8) : e + 8, 19);
+      }
+      if (exifIfd && exifIfd + 2 < view.byteLength){
+        const nE = g16(exifIfd);
+        for (let j = 0; j < nE; j++){
+          const e2 = exifIfd + 2 + j * 12, tag2 = g16(e2), cnt2 = g32(e2 + 4);
+          if (tag2 === 0x9003){ out.date = str(cnt2 > 4 ? tiffStart + g32(e2 + 8) : e2 + 8, 19); break; }
+        }
+      }
+    } catch(e){ /* unlesbar */ }
+    return out;
+  }
+
+  function toMs(s){
+    if (!s) return null;
+    const m = /^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(s);
+    return m ? new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]).getTime() : null;
+  }
+
+  // ---------- Fingerabdruck ----------
+  async function fingerprint(file, needSha){
+    const head = await file.slice(0, 262144).arrayBuffer();
+    const meta = readMeta(head);
+
+    let sha = null;
+    if (needSha){
+      const full = await file.arrayBuffer();
+      const dg = await crypto.subtle.digest('SHA-256', full);
+      sha = [...new Uint8Array(dg)].map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const w = bmp.width, h = bmp.height;
+    ctx.clearRect(0, 0, 9, 8);
+    ctx.drawImage(bmp, 0, 0, 9, 8);
+    if (bmp.close) bmp.close();
+    const px = ctx.getImageData(0, 0, 9, 8).data;
+
+    // dHash: benachbarte Helligkeiten vergleichen, ergibt 64 Bit.
+    let lo = 0, hi = 0, bit = 0;
+    for (let y = 0; y < 8; y++){
+      for (let x = 0; x < 8; x++){
+        const i = (y * 9 + x) * 4, j = (y * 9 + x + 1) * 4;
+        const g1 = px[i] * 0.299 + px[i+1] * 0.587 + px[i+2] * 0.114;
+        const g2 = px[j] * 0.299 + px[j+1] * 0.587 + px[j+2] * 0.114;
+        const b = g1 > g2 ? 1 : 0;
+        if (bit < 32) lo |= b << bit; else hi |= b << (bit - 32);
+        bit++;
+      }
+    }
+    return { lo: lo >>> 0, hi: hi >>> 0, w: w, h: h, sha: sha,
+             date: toMs(meta.date) || file.lastModified || null,
+             isShot: classifyScreenshot(file, {w:w, h:h, make:meta.make}) };
+  }
+
+  // Screenshots: PNG, oder Bildschirmauflösung ohne Kamera-Angabe im EXIF.
+  function classifyScreenshot(file, res){
+    if (ext(file.name) === 'png') return true;
+    if (res.make) return false;
+    return SCREEN_RES.has(res.w + 'x' + res.h) || SCREEN_RES.has(res.h + 'x' + res.w);
+  }
+
+  // ---------- Analyse ----------
+  async function analyze(files){
+    aborted = false;
+    analyzed = [];
+    stats = {skipped:0, failed:0};
+    allObjectUrls.forEach(u => URL.revokeObjectURL(u));
+    allObjectUrls = [];
+    showStep(2);
+
+    const progressBar = $('progressBar'), progressDetail = $('progressDetail'), progressLabel = $('progressLabel');
+    progressLabel.textContent = 'Entschlüssle und vergleiche Fotos…';
+
+    // Nur bei gleicher Dateigröße lohnt der teure SHA-256-Vergleich für bit-genaue Duplikate.
+    const sizeCount = new Map();
+    files.forEach(f => sizeCount.set(f.size, (sizeCount.get(f.size) || 0) + 1));
+
+    for (let i = 0; i < files.length; i++){
+      if (aborted){ showStep(1); return; }
+      const f = files[i];
+      try {
+        const fp = await fingerprint(f, sizeCount.get(f.size) > 1);
+        analyzed.push(Object.assign({ file: f, name: f.name, size: f.size }, fp));
+      } catch(e){
+        stats.failed++;
+      }
+      const pct = Math.round((i + 1) / files.length * 100);
+      progressBar.style.width = pct + '%';
+      progressDetail.textContent = (i + 1) + ' von ' + files.length + ' (' + pct + ' %)' +
+        (stats.failed ? ' · ' + stats.failed + ' nicht lesbar' : '');
+      if (i % 3 === 0) await tick();
+    }
+
+    await buildGroups();
+    if (aborted){ showStep(1); return; }
+    render();
     showStep(3);
   }
 
-  function renderResults(totalAnalyzed){
-    const totalExtra = duplicateGroups.reduce((s,g)=>s+g.files.length-1,0);
-    const totalBytes = duplicateGroups.reduce((s,g)=>{
-      return s + g.files.reduce((s2,f,i)=> i===g.keepIndex ? s2 : s2 + f.file.size, 0);
-    },0);
+  async function buildGroups(){
+    stats.skipped = analyzed.filter(a => a.isShot).length;
+    const pool = analyzed.filter(a => !a.isShot);
 
-    $('statAnalyzed').textContent = totalAnalyzed;
-    $('statGroups').textContent = duplicateGroups.length;
+    // 1) Bit-identische Duplikate über SHA-256.
+    const bySha = new Map();
+    pool.forEach(a => {
+      if (!a.sha) return;
+      if (!bySha.has(a.sha)) bySha.set(a.sha, []);
+      bySha.get(a.sha).push(a);
+    });
+    exactGroups = [...bySha.values()].filter(g => g.length > 1).map(items => makeGroup(items, true));
+
+    const inExact = new Set();
+    exactGroups.forEach(g => g.files.forEach((f,i) => { if (i !== g.keepIndex) inExact.add(f); }));
+
+    // 2) Ähnliche Bilder: einmalig alle Paare bis zur lockersten Stufe sammeln.
+    //    Danach kostet jede Regler-Bewegung nur noch ein Filtern dieser Liste.
+    const rest = pool.filter(a => !inExact.has(a));
+    pairs = [];
+    $('progressLabel').textContent = 'Suche ähnliche Bilder…';
+    for (let i = 0; i < rest.length; i++){
+      for (let j = i + 1; j < rest.length; j++){
+        const d = dist(rest[i], rest[j]);
+        if (d <= MAX_DIST) pairs.push({ a: i, b: j, d: d });
+      }
+      if ((i & 127) === 0){
+        $('progressBar').style.width = Math.round(i / rest.length * 100) + '%';
+        await tick();
+        if (aborted) return;
+      }
+    }
+    pairs._items = rest;
+  }
+
+  // Strenge Gruppen: jedes Mitglied muss mit jedem anderen unter der Schwelle liegen.
+  // Sonst entstehen Ketten (A≈B, B≈C, aber A≉C), die ganze Alben zusammenziehen.
+  function clusterStrict(maxDist){
+    const items = pairs._items || [];
+    const adj = new Map();
+    pairs.forEach(p => {
+      if (p.d > maxDist) return;
+      if (!adj.has(p.a)) adj.set(p.a, new Set());
+      if (!adj.has(p.b)) adj.set(p.b, new Set());
+      adj.get(p.a).add(p.b); adj.get(p.b).add(p.a);
+    });
+
+    const used = new Set(), groups = [];
+    const order = [...adj.keys()].sort((x,y) => adj.get(y).size - adj.get(x).size);
+    order.forEach(seed => {
+      if (used.has(seed)) return;
+      const cand = [...adj.get(seed)].filter(n => !used.has(n))
+        .sort((x,y) => dist(items[seed], items[x]) - dist(items[seed], items[y]));
+      const clique = [seed];
+      cand.forEach(c => {
+        if (clique.every(m => adj.get(m) && adj.get(m).has(c))) clique.push(c);
+      });
+      if (clique.length > 1){
+        clique.forEach(m => used.add(m));
+        groups.push(makeGroup(clique.map(i => items[i]), false));
+      }
+    });
+    return groups;
+  }
+
+  // Behalten wird die größte Datei; bei Gleichstand die ältere.
+  function makeGroup(items, isExact){
+    const files = items.slice().sort((a,b) => {
+      if (b.size !== a.size) return b.size - a.size;
+      return (a.date || 0) - (b.date || 0);
+    });
+    return { files: files, keepIndex: 0, exact: isExact };
+  }
+
+  // ---------- Anzeige ----------
+  function urlFor(f){
+    if (!f._url){ f._url = URL.createObjectURL(f.file); allObjectUrls.push(f._url); }
+    return f._url;
+  }
+
+  function render(){
+    const p = +$('threshold').value;
+    $('thresholdVal').textContent = p + ' %';
+    $('tierLabel').textContent = 'Fasst zusammen: ' + tierName(p);
+
+    renderedGroups = exactGroups.concat(p >= 100 ? [] : clusterStrict(pctToDist(p)));
+
+    const totalExtra = renderedGroups.reduce((s,g)=>s+g.files.length-1,0);
+    const totalBytes = renderedGroups.reduce((s,g)=>
+      s + g.files.reduce((s2,f,i)=> i === g.keepIndex ? s2 : s2 + f.size, 0), 0);
+
+    $('statAnalyzed').textContent = analyzed.length;
+    $('statGroups').textContent = renderedGroups.length;
     $('statExtra').textContent = totalExtra;
     $('statSize').textContent = fmtBytes(totalBytes);
+    $('statSkipped').textContent = stats.skipped;
     $('proceedCount').textContent = totalExtra;
     $('proceedCard').classList.toggle('hidden', totalExtra === 0);
-    $('noDupHint').classList.toggle('hidden', duplicateGroups.length !== 0);
+    $('noDupHint').classList.toggle('hidden', renderedGroups.length !== 0);
+
+    $('decodeWarn').innerHTML = stats.failed
+      ? '<div class="banner warn">' + stats.failed + ' Dateien konnten nicht gelesen werden und wurden übersprungen.</div>'
+      : '';
 
     const container = $('groupsContainer');
     container.innerHTML = '';
-    duplicateGroups.forEach((group, gi) => {
+    renderedGroups.forEach((group, gi) => {
       const div = document.createElement('div');
-      div.className = 'group';
-      const perFileSize = fmtBytes(group.files[0].file.size);
-      div.innerHTML = '<h3>Gruppe ' + (gi+1) + ' · ' + group.files.length + ' identische Fotos · je ' + perFileSize + '</h3>';
+      div.className = 'group' + (group.exact ? ' exact' : '');
+      const worst = group.exact ? 0 : Math.max(0, ...group.files.map((f,i) => i === 0 ? 0 : dist(group.files[0], f)));
+      div.innerHTML = '<h3>' + (group.exact
+        ? '✔ Gruppe ' + (gi+1) + ' · bit-identisch · ' + group.files.length + ' Fotos'
+        : 'Gruppe ' + (gi+1) + ' · ähnlich zu ~' + Math.round((64-worst)/64*100) + ' % · ' + group.files.length + ' Fotos') + '</h3>';
+
       const thumbs = document.createElement('div');
       thumbs.className = 'thumbs';
       group.files.forEach((f, fi) => {
@@ -317,8 +490,8 @@
         const t = document.createElement('div');
         t.className = 'thumb ' + (isKeep ? 'keep' : 'del');
         t.innerHTML =
-          '<img src="' + f.url + '" loading="lazy">' +
-          '<div class="meta">' + fmtDate(f.date) + '</div>' +
+          '<img src="' + urlFor(f) + '" loading="lazy">' +
+          '<div class="meta">' + fmtDate(f.date) + '<br>' + fmtBytes(f.size) + '</div>' +
           '<span class="tag ' + (isKeep?'keep':'del') + '">' + (isKeep ? 'BEHALTEN' : 'LÖSCHEN') + '</span>' +
           '<div class="toggle-row"><span>als behalten markieren</span>' +
             '<div class="switch ' + (isKeep?'':'on') + '" data-g="' + gi + '" data-f="' + fi + '"></div></div>';
@@ -330,24 +503,44 @@
 
     container.querySelectorAll('.switch').forEach(sw => {
       sw.addEventListener('click', () => {
-        const gi = +sw.dataset.g, fi = +sw.dataset.f;
-        duplicateGroups[gi].keepIndex = fi; // clicking "als behalten markieren" makes this one the keeper
-        renderResults(totalAnalyzed);
+        renderedGroups[+sw.dataset.g].keepIndex = +sw.dataset.f;
+        repaintKeepMarks();
       });
     });
   }
 
-  // ---- Step 4: Checkliste ----
-  let checklistItems = []; // {file,date,url,done}
+  // Beim Umschalten des Behalten-Bildes darf die Gruppierung nicht neu gewürfelt werden.
+  function repaintKeepMarks(){
+    const totalExtra = renderedGroups.reduce((s,g)=>s+g.files.length-1,0);
+    const totalBytes = renderedGroups.reduce((s,g)=>
+      s + g.files.reduce((s2,f,i)=> i === g.keepIndex ? s2 : s2 + f.size, 0), 0);
+    $('statExtra').textContent = totalExtra;
+    $('statSize').textContent = fmtBytes(totalBytes);
+    $('proceedCount').textContent = totalExtra;
+    $('groupsContainer').querySelectorAll('.group').forEach((div, gi) => {
+      const g = renderedGroups[gi];
+      div.querySelectorAll('.thumb').forEach((t, fi) => {
+        const isKeep = fi === g.keepIndex;
+        t.className = 'thumb ' + (isKeep ? 'keep' : 'del');
+        const tag = t.querySelector('.tag');
+        tag.className = 'tag ' + (isKeep ? 'keep' : 'del');
+        tag.textContent = isKeep ? 'BEHALTEN' : 'LÖSCHEN';
+        t.querySelector('.switch').className = 'switch' + (isKeep ? '' : ' on');
+      });
+    });
+  }
+
+  // ---------- Checkliste ----------
+  let checklistItems = [];
 
   function buildChecklist(){
     checklistItems = [];
-    duplicateGroups.forEach(g => {
+    renderedGroups.forEach(g => {
       g.files.forEach((f, fi) => {
-        if (fi !== g.keepIndex) checklistItems.push({ ...f, done:false });
+        if (fi !== g.keepIndex) checklistItems.push({ ref:f, done:false });
       });
     });
-    checklistItems.sort((a,b)=> (a.date?.getTime()||0) - (b.date?.getTime()||0));
+    checklistItems.sort((a,b)=> (a.ref.date||0) - (b.ref.date||0));
     renderChecklist();
     showStep(4);
   }
@@ -356,12 +549,13 @@
     const container = $('checklistContainer');
     container.innerHTML = '';
     checklistItems.forEach((item, idx) => {
+      const f = item.ref;
       const row = document.createElement('div');
       row.className = 'checklist-item' + (item.done ? ' done' : '');
       row.innerHTML =
-        '<img src="' + item.url + '">' +
+        '<img src="' + urlFor(f) + '">' +
         '<div class="info">Foto ' + (idx+1) + ' von ' + checklistItems.length +
-          '<div class="date">' + fmtDate(item.date) + ' · ' + fmtBytes(item.file.size) + '</div></div>' +
+          '<div class="date">' + fmtDate(f.date) + ' · ' + fmtBytes(f.size) + '</div></div>' +
         '<div class="checkbox' + (item.done ? ' done' : '') + '" data-idx="' + idx + '">' + (item.done ? '✓' : '') + '</div>';
       container.appendChild(row);
     });
@@ -370,7 +564,6 @@
         const idx = +cb.dataset.idx;
         checklistItems[idx].done = !checklistItems[idx].done;
         renderChecklist();
-        updateChecklistProgress();
       });
     });
     updateChecklistProgress();
@@ -385,11 +578,11 @@
 
   async function exportList(){
     const lines = checklistItems.map((it,i) =>
-      (i+1) + '. ' + fmtDate(it.date) + ' – ' + fmtBytes(it.file.size) + (it.file.name ? ' – ' + it.file.name : '')
+      (i+1) + '. ' + fmtDate(it.ref.date) + ' – ' + fmtBytes(it.ref.size) + (it.ref.name ? ' – ' + it.ref.name : '')
     );
     const text = 'Zu löschende Duplikate (' + checklistItems.length + '):\n\n' + lines.join('\n');
     if (navigator.share){
-      try { await navigator.share({ text }); return; } catch(e){ /* fall through */ }
+      try { await navigator.share({ text }); return; } catch(e){ /* weiter unten */ }
     }
     try {
       await navigator.clipboard.writeText(text);
@@ -406,18 +599,24 @@
   function resetAll(){
     allObjectUrls.forEach(u => URL.revokeObjectURL(u));
     allObjectUrls = [];
-    duplicateGroups = [];
-    checklistItems = [];
+    analyzed = []; exactGroups = []; pairs = []; renderedGroups = []; checklistItems = [];
     fileInput.value = '';
     showStep(1);
   }
 
+  // ---------- Verdrahtung ----------
   fileInput.addEventListener('change', (e) => {
-    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
+    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/') || /\.(hei[cf]|jpe?g|png)$/i.test(f.name));
     if (files.length === 0) return;
     analyze(files);
   });
 
+  $('btnAbort').addEventListener('click', () => { aborted = true; });
+  $('threshold').addEventListener('input', () => {
+    $('thresholdVal').textContent = $('threshold').value + ' %';
+    $('tierLabel').textContent = 'Fasst zusammen: ' + tierName(+$('threshold').value);
+  });
+  $('threshold').addEventListener('change', render);
   $('btnProceed').addEventListener('click', buildChecklist);
   $('btnBack').addEventListener('click', () => showStep(3));
   $('btnRestart').addEventListener('click', resetAll);
